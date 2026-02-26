@@ -1,6 +1,7 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import Game from './pages/tic-tac-toe/Game'
+import ProductTable from './pages/ProductTablePage'
 import Todo from './pages/Todo'
+import Game from './pages/tic-tac-toe/Game'
 
 function Home() {
   return (
@@ -16,6 +17,11 @@ function Home() {
           <li>
             <Link to="/todo" className="text-blue-600 hover:underline">
               Todo
+            </Link>
+          </li>
+          <li>
+            <Link to="/product-table" className="text-blue-600 hover:underline">
+              Product Table
             </Link>
           </li>
         </ul>
@@ -62,6 +68,14 @@ export default function App() {
           element={
             <Layout>
               <Todo />
+            </Layout>
+          }
+        />
+        <Route
+          path="/product-table"
+          element={
+            <Layout>
+              <ProductTable />
             </Layout>
           }
         />
