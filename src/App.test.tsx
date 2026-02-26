@@ -1,15 +1,16 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import App, { calculateWinner, Player } from './App'
+import { calculateWinner, Player } from './App'
+import Game from './Game'
 
-describe('App', () => {
+describe('Game', () => {
   it('renders the board', () => {
-    render(<App />)
+    render(<Game />)
     const buttons = screen.getAllByRole('button')
-    expect(buttons).toHaveLength(9)
+    expect(buttons).toHaveLength(10) // 9 squares + 1 history button
   })
 
   it('alternates X and O on clicks', () => {
-    render(<App />)
+    render(<Game />)
     const buttons = screen.getAllByRole('button')
     fireEvent.click(buttons[0])
     expect(buttons[0]).toHaveTextContent('X')
@@ -20,7 +21,7 @@ describe('App', () => {
   })
 
   it('declares X as winner when X gets three in a row', () => {
-    render(<App />)
+    render(<Game />)
     const buttons = screen.getAllByRole('button')
     // X: 0, 1, 2 (top row)
     fireEvent.click(buttons[0]) // X
@@ -32,7 +33,7 @@ describe('App', () => {
   })
 
   it('prevents clicking after game is won', () => {
-    render(<App />)
+    render(<Game />)
     const buttons = screen.getAllByRole('button')
     // X wins with top row
     fireEvent.click(buttons[0]) // X

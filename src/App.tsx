@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 export enum Player {
   X = 'X',
   O = 'O',
@@ -47,26 +45,21 @@ function Square({ value, onClick }: SquareProps) {
   )
 }
 
-export default function Board() {
-  const [squares, setSquares] = useState<Array<Player | null>>(
-    Array(9).fill(null),
-  )
-  const [currentPlayer, setCurrentPlayer] = useState<Player>(Player.X)
-  const [winner, setWinner] = useState<Player | null>(null)
+interface BoardProps {
+  squares: Array<Player | null>
+  currentPlayer: Player
+  onPlay: (nextSquares: Array<Player | null>) => void
+}
+
+export function Board({ squares, currentPlayer, onPlay }: BoardProps) {
+  const winner = calculateWinner(squares)
 
   function handleClick(index: number) {
     if (squares[index] || winner) return
 
     const nextSquares = squares.slice()
     nextSquares[index] = currentPlayer
-    setSquares(nextSquares)
-
-    const gameWinner = calculateWinner(nextSquares)
-    if (gameWinner) {
-      setWinner(gameWinner)
-    } else {
-      setCurrentPlayer(Player.toggle(currentPlayer))
-    }
+    onPlay(nextSquares)
   }
 
   return (
