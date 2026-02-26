@@ -5,7 +5,7 @@ export enum Player {
   O = 'O',
 }
 
-namespace Player {
+export namespace Player {
   export function toggle(player: Player): Player {
     return player === Player.X ? Player.O : Player.X
   }
