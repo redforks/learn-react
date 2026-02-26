@@ -8,7 +8,12 @@ interface Product {
 function ProductCategoryRow({ category }: { category: string }) {
   return (
     <tr>
-      <th colSpan={2}>{category}</th>
+      <th
+        colSpan={2}
+        className="bg-gray-100 px-4 py-2 text-center text-sm font-semibold text-gray-700"
+      >
+        {category}
+      </th>
     </tr>
   )
 }
@@ -17,13 +22,13 @@ function ProductRow({ product }: { product: Product }) {
   const name = product.stocked ? (
     product.name
   ) : (
-    <span style={{ color: 'red' }}>{product.name}</span>
+    <span className="text-red-500">{product.name}</span>
   )
 
   return (
-    <tr>
-      <td>{name}</td>
-      <td>{product.price}</td>
+    <tr className="border-b border-gray-200 hover:bg-gray-50">
+      <td className="px-4 py-2 text-sm text-gray-900">{name}</td>
+      <td className="px-4 py-2 text-sm text-gray-600">{product.price}</td>
     </tr>
   )
 }
@@ -46,11 +51,15 @@ function ProductTable({ products }: { products: Array<Product> }) {
   })
 
   return (
-    <table>
+    <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
       <thead>
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
+        <tr className="border-b border-gray-200 bg-gray-50">
+          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            Name
+          </th>
+          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+            Price
+          </th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>
@@ -79,7 +88,7 @@ function SearchBar() {
 
 function FilterableProductTable({ products }: { products: Array<Product> }) {
   return (
-    <div>
+    <div className="rounded-xl bg-white p-6 shadow-md">
       <SearchBar />
       <ProductTable products={products} />
     </div>
