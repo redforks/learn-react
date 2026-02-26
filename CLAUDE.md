@@ -9,16 +9,12 @@ This is a React application built with modern tooling.
 - **Runtime**: [Bun](https://bun.sh/) - Fast JavaScript runtime and package manager
 - **Build Tool**: [Vite](https://vitejs.dev/) - Next-generation frontend tooling
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- **Linting/Formatting**: [Biome](https://biomejs.dev/) - Fast formatter and linter
 
 ## Common Commands
 
 ```bash
-# Install dependencies
-bun install
-
 # Start development server
-bun dev
+bun run dev
 
 # Build for production
 bun run build
@@ -27,19 +23,9 @@ bun run build
 bun run preview
 
 # Run tests
-bun test
+bun run test
 
-# Run tests once
-bun run test:run
-
-# Format code with Biome
-bunx biome format --write .
-
-# Lint with Biome
-bunx biome lint --write .
-
-# Check with Biome (format + lint)
-bunx biome check --write .
+bun run lint 
 ```
 
 ## Project Structure
