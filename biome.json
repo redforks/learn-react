@@ -8,12 +8,34 @@
       "semicolons": "asNeeded"
     }
   },
+
+  "overrides": [
+    {
+      "includes": ["**/*.test.*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
   "linter": {
     "enabled": true,
     "domains": {
       "react": "all"
     },
     "rules": {
+      "style": {
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": true,
+            "filenameCases": ["kebab-case", "export"]
+          }
+        }
+      },
       "recommended": true,
       "correctness": {
         "useExhaustiveDependencies": "warn"
