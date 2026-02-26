@@ -12,20 +12,23 @@ This is a React application built with modern tooling.
 
 ## Common Commands
 
+**IMPORTANT: Use `just` commands instead of `bun run` or `bunx`.**
+
 ```bash
 # Start development server
-bun run dev
+just dev
 
 # Build for production
-bun run build
+just build
 
 # Preview production build
-bun run preview
+just preview
 
-# Run tests
-bun run test
+# Run tests once
+just test
 
-bun run lint 
+# Run linter
+just lint
 ```
 
 ## Project Structure
@@ -36,10 +39,12 @@ src/
 ├── main.tsx       # Application entry point
 └── test/
     └── setup.ts   # Test configuration
+justfile           # Task runner commands
 ```
 
 ## Notes
 
-- Use `bun` instead of `npm` for all package management
+- **Use `just` for running commands** - Do NOT use `bun run` or `bunx`, use `just <command>` instead
+- Use `bun` only for package management (installing dependencies: `bun install`, adding packages: `bun add`)
 - Tailwind CSS v4 is used with the `@tailwindcss/postcss` plugin
 - Vitest is configured with happy-dom for component testing
