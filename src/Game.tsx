@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Board, Player } from './Board'
+import { Board } from './Board'
+import { Player } from './game'
 
 interface HistoryEntry {
   squares: Array<Player | null>
