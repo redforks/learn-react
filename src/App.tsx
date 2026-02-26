@@ -1,7 +1,18 @@
 import { useState } from 'react'
 
+enum Player {
+  X = 'X',
+  O = 'O',
+}
+
+namespace Player {
+  export function toggle(player: Player): Player {
+    return player === Player.X ? Player.O : Player.X
+  }
+}
+
 interface SquareProps {
-  value: string | null
+  value: Player | null
   onClick: () => void
 }
 
@@ -18,16 +29,16 @@ function Square({ value, onClick }: SquareProps) {
 }
 
 export default function Board() {
-  const [squares, setSquares] = useState<Array<string | null>>(Array(9).fill(null))
-  const [xIsNext, setXIsNext] = useState(true)
+  const [squares, setSquares] = useState<Array<Player | null>>(Array(9).fill(null))
+  const [currentPlayer, setCurrentPlayer] = useState<Player>(Player.X)
 
   function handleClick(index: number) {
     if (squares[index]) return
 
     const nextSquares = squares.slice()
-    nextSquares[index] = xIsNext ? 'X' : 'O'
+    nextSquares[index] = currentPlayer
     setSquares(nextSquares)
-    setXIsNext(!xIsNext)
+    setCurrentPlayer(Player.toggle(currentPlayer))
   }
 
   return (
