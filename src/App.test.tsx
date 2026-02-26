@@ -8,14 +8,14 @@ describe('App', () => {
     expect(buttons).toHaveLength(9)
   })
 
-  it('toggles X when a square is clicked', () => {
+  it('alternates X and O on clicks', () => {
     render(<App />)
     const buttons = screen.getAllByRole('button')
     fireEvent.click(buttons[0])
     expect(buttons[0]).toHaveTextContent('X')
-    fireEvent.click(buttons[0])
-    expect(buttons[0]).toHaveTextContent('')
-    fireEvent.click(buttons[0])
-    expect(buttons[0]).toHaveTextContent('X')
+    fireEvent.click(buttons[1])
+    expect(buttons[1]).toHaveTextContent('O')
+    fireEvent.click(buttons[2])
+    expect(buttons[2]).toHaveTextContent('X')
   })
 })
