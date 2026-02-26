@@ -9,6 +9,7 @@ function Square() {
 
   return (
     <button
+      type="button"
       className="bg-white border border-zinc-500 text-2xl font-bold size-8 -mr-px -mt-px text-center"
       onClick={handleClick}
     >
