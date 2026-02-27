@@ -22,3 +22,6 @@ test:
 # Run tests in watch mode
 test-watch:
     bun run vitest
+
+outdated:
+    bunx npm-check-updates
