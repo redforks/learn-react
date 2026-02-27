@@ -1,10 +1,15 @@
 import { useState } from 'react'
 
-interface Product {
+export interface Product {
   category: string
   price: string
   stocked: boolean
   name: string
+}
+
+interface SearchArgs {
+  search?: string
+  inStockOnly?: boolean
 }
 
 export function ProductCategoryRow({ category }: { category: string }) {
@@ -67,11 +72,6 @@ export function ProductTable({ products }: { products: Array<Product> }) {
       <tbody>{rows}</tbody>
     </table>
   )
-}
-
-interface SearchArgs {
-  search?: string
-  inStockOnly?: boolean
 }
 
 export function SearchBar({
@@ -143,17 +143,4 @@ export function FilterableProductTable({
       <ProductTable products={filtered} />
     </div>
   )
-}
-
-export const PRODUCTS: Array<Product> = [
-  { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
-  { category: 'Fruits', price: '$1', stocked: true, name: 'Dragonfruit' },
-  { category: 'Fruits', price: '$2', stocked: false, name: 'Passionfruit' },
-  { category: 'Vegetables', price: '$2', stocked: true, name: 'Spinach' },
-  { category: 'Vegetables', price: '$4', stocked: false, name: 'Pumpkin' },
-  { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
-]
-
-export default function ProductTablePage() {
-  return <FilterableProductTable products={PRODUCTS} />
 }

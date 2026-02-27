@@ -1,5 +1,5 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import ProductTable from './pages/ProductTablePage'
+import ProductTable from './pages/product-table/ProductTablePage'
 import Todo from './pages/Todo'
 import Game from './pages/tic-tac-toe/Game'
 

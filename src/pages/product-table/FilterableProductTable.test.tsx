@@ -1,13 +1,22 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
-import ProductTablePage, {
+import {
   FilterableProductTable,
-  PRODUCTS,
+  Product,
   ProductCategoryRow,
   ProductRow,
   ProductTable,
   SearchBar,
-} from './ProductTablePage'
+} from './FilterableProductTable'
+
+const PRODUCTS: Array<Product> = [
+  { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
+  { category: 'Fruits', price: '$1', stocked: true, name: 'Dragonfruit' },
+  { category: 'Fruits', price: '$2', stocked: false, name: 'Passionfruit' },
+  { category: 'Vegetables', price: '$2', stocked: true, name: 'Spinach' },
+  { category: 'Vegetables', price: '$4', stocked: false, name: 'Pumpkin' },
+  { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
+]
 
 describe('ProductCategoryRow', () => {
   it('renders category name', () => {
@@ -317,25 +326,5 @@ describe('FilterableProductTable', () => {
     expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
-  })
-})
-
-describe('ProductTablePage', () => {
-  it('renders FilterableProductTable with default products', () => {
-    render(<ProductTablePage />)
-
-    expect(screen.getByText('Fruits')).toBeInTheDocument()
-    expect(screen.getByText('Vegetables')).toBeInTheDocument()
-    expect(screen.getByText('Apple')).toBeInTheDocument()
-    expect(screen.getByText('Spinach')).toBeInTheDocument()
-  })
-
-  it('renders search bar', () => {
-    render(<ProductTablePage />)
-
-    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
-    expect(
-      screen.getByRole('checkbox', { name: /only show products in stock/i }),
-    ).toBeInTheDocument()
   })
 })
