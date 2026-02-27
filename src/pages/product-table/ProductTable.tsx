@@ -1,6 +1,6 @@
-import { FilterableProductTable, Product } from './FilterableProductTable'
+import { FilterableProductTable, type Product } from './FilterableProductTable'
 
-export const PRODUCTS: Array<Product> = [
+const PRODUCTS: Array<Product> = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
   { category: 'Fruits', price: '$1', stocked: true, name: 'Dragonfruit' },
   { category: 'Fruits', price: '$2', stocked: false, name: 'Passionfruit' },
@@ -9,6 +9,6 @@ export const PRODUCTS: Array<Product> = [
   { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
 ]
 
-export default function ProductTablePage() {
+export default function ProductTable() {
   return <FilterableProductTable products={PRODUCTS} />
 }

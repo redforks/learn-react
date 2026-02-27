@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react'
-import ProductTablePage from './ProductTablePage'
+import ProductTable from './ProductTable'
 
-describe('ProductTablePage', () => {
+describe('ProductTable', () => {
   it('renders FilterableProductTable with default products', () => {
-    render(<ProductTablePage />)
+    render(<ProductTable />)
 
     expect(screen.getByText('Fruits')).toBeInTheDocument()
     expect(screen.getByText('Vegetables')).toBeInTheDocument()
@@ -12,7 +12,7 @@ describe('ProductTablePage', () => {
   })
 
   it('renders search bar', () => {
-    render(<ProductTablePage />)
+    render(<ProductTable />)
 
     expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
     expect(

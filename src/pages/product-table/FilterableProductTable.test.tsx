@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import {
   FilterableProductTable,
-  Product,
+  type Product,
   ProductCategoryRow,
   ProductRow,
   ProductTable,
