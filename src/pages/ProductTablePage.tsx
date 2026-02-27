@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 interface Product {
   category: string
   price: string
@@ -5,7 +7,7 @@ interface Product {
   name: string
 }
 
-function ProductCategoryRow({ category }: { category: string }) {
+export function ProductCategoryRow({ category }: { category: string }) {
   return (
     <tr>
       <th
@@ -18,11 +20,11 @@ function ProductCategoryRow({ category }: { category: string }) {
   )
 }
 
-function ProductRow({ product }: { product: Product }) {
-  const name = product.stocked ? (
-    product.name
-  ) : (
-    <span className="text-red-500">{product.name}</span>
+export function ProductRow({ product }: { product: Product }) {
+  const name = (
+    <span className={product.stocked ? '' : 'text-red-500'}>
+      {product.name}
+    </span>
   )
 
   return (
@@ -33,7 +35,7 @@ function ProductRow({ product }: { product: Product }) {
   )
 }
 
-function ProductTable({ products }: { products: Array<Product> }) {
+export function ProductTable({ products }: { products: Array<Product> }) {
   const rows: Array<React.ReactNode> = []
   let lastCategory: string | null = null
 
@@ -67,17 +69,46 @@ function ProductTable({ products }: { products: Array<Product> }) {
   )
 }
 
-function SearchBar() {
+interface SearchArgs {
+  search?: string
+  inStockOnly?: boolean
+}
+
+export function SearchBar({
+  args,
+  setArgs,
+}: {
+  args: SearchArgs
+  setArgs: (args: SearchArgs) => void
+}) {
+  function toggleInStockOnly() {
+    setArgs({
+      ...args,
+      inStockOnly: !args.inStockOnly,
+    })
+  }
+
+  function updateSearch(search: string): void {
+    setArgs({
+      ...args,
+      search,
+    })
+  }
+
   return (
     <form className="mb-4 flex items-center gap-4">
       <input
         type="text"
+        value={args.search}
+        onChange={(e) => updateSearch(e.target.value)}
         placeholder="Search..."
         className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
       />
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
+          checked={args.inStockOnly}
+          onChange={toggleInStockOnly}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         Only show products in stock
@@ -86,16 +117,35 @@ function SearchBar() {
   )
 }
 
-function FilterableProductTable({ products }: { products: Array<Product> }) {
+export function FilterableProductTable({
+  products,
+}: {
+  products: Array<Product>
+}) {
+  const [args, setArgs] = useState<SearchArgs>({})
+  const filtered = products.filter((p) => {
+    if (args.inStockOnly && !p.stocked) {
+      return false
+    }
+
+    if (
+      args.search &&
+      p.name.toLowerCase().indexOf(args.search.toLowerCase()) === -1
+    ) {
+      return false
+    }
+    return true
+  })
+
   return (
     <div className="rounded-xl bg-white p-6 shadow-md">
-      <SearchBar />
-      <ProductTable products={products} />
+      <SearchBar args={args} setArgs={setArgs} />
+      <ProductTable products={filtered} />
     </div>
   )
 }
 
-const PRODUCTS: Array<Product> = [
+export const PRODUCTS: Array<Product> = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
   { category: 'Fruits', price: '$1', stocked: true, name: 'Dragonfruit' },
   { category: 'Fruits', price: '$2', stocked: false, name: 'Passionfruit' },
