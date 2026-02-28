@@ -1,1 +1,0 @@
-import{p as e,t as n}from"./chunk-LFPYN7LY-DfVYUbzF.js";function r({children:s}){return e.jsxs("div",{className:"min-h-screen p-8",children:[e.jsx("nav",{className:"mb-6",children:e.jsx(n,{to:"/",className:"text-blue-600 hover:underline text-sm",children:"← Home"})}),s]})}export{r as L};

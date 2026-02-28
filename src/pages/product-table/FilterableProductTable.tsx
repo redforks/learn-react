@@ -99,7 +99,7 @@ export function SearchBar({
     <form className="mb-4 flex items-center gap-4">
       <input
         type="text"
-        value={args.search || ''}
+        value={args.search}
         onChange={(e) => updateSearch(e.target.value)}
         placeholder="Search..."
         className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -107,7 +107,7 @@ export function SearchBar({
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
-          checked={!!args.inStockOnly}
+          checked={args.inStockOnly}
           onChange={toggleInStockOnly}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />

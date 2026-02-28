@@ -20,24 +20,12 @@ const PRODUCTS: Array<Product> = [
 
 describe('ProductCategoryRow', () => {
   it('renders category name', () => {
-    render(
-      <table>
-        <tbody>
-          <ProductCategoryRow category="Fruits" />
-        </tbody>
-      </table>,
-    )
+    render(<ProductCategoryRow category="Fruits" />)
     expect(screen.getByText('Fruits')).toBeInTheDocument()
   })
 
   it('renders as table header with colSpan=2', () => {
-    const { container } = render(
-      <table>
-        <tbody>
-          <ProductCategoryRow category="Test" />
-        </tbody>
-      </table>,
-    )
+    const { container } = render(<ProductCategoryRow category="Test" />)
     const th = container.querySelector('th')
     expect(th).toHaveAttribute('colSpan', '2')
   })
