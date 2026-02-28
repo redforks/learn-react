@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router-dom'
-import { Page, type Product } from './FilterableProductTable'
+import { Page, type Product } from './components'
 
 const PRODUCTS: Array<Product> = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },

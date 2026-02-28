@@ -7,7 +7,7 @@ import {
   ProductRow,
   ProductTable,
   SearchBar,
-} from './FilterableProductTable'
+} from './components'
 
 const PRODUCTS: Array<Product> = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
