@@ -24,4 +24,4 @@ test-watch:
     bun run vitest
 
 outdated:
-    bunx npm-check-updates
+    bun outdated
