@@ -118,11 +118,8 @@ export function SearchBar({
   )
 }
 
-export function FilterableProductTable({
-  products,
-}: {
-  products: Array<Product>
-}) {
+export function FilterableProductTable() {
+  const products = useLoaderData<Product[]>()
   const [args, setArgs] = useState<SearchArgs>({})
   const filtered = products.filter((p) => {
     if (args.inStockOnly && !p.stocked) {
@@ -144,9 +141,4 @@ export function FilterableProductTable({
       <ProductTable products={filtered} />
     </div>
   )
-}
-
-export function Page() {
-  const products = useLoaderData<Product[]>()
-  return <FilterableProductTable products={products} />
 }

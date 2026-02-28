@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { createRoutesStub } from 'react-router-dom'
 import { vi } from 'vitest'
 import {
   FilterableProductTable,
@@ -198,10 +199,19 @@ describe('SearchBar', () => {
 })
 
 describe('FilterableProductTable', () => {
-  it('renders all products by default', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
+  beforeEach(() => {
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: FilterableProductTable,
+        loader: () => PRODUCTS,
+      },
+    ])
+    render(<Stub initialEntries={['/']} />)
+  })
 
-    expect(screen.getByText('Apple')).toBeInTheDocument()
+  it('renders all products by default', async () => {
+    expect(await screen.findByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('Dragonfruit')).toBeInTheDocument()
     expect(screen.getByText('Passionfruit')).toBeInTheDocument()
     expect(screen.getByText('Spinach')).toBeInTheDocument()
@@ -209,10 +219,8 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Peas')).toBeInTheDocument()
   })
 
-  it('filters products by search text (case insensitive)', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
+  it('filters products by search text (case insensitive)', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'apple' } })
 
     expect(screen.getByText('Apple')).toBeInTheDocument()
@@ -220,20 +228,16 @@ describe('FilterableProductTable', () => {
     expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
   })
 
-  it('filters products by search text with uppercase input', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
+  it('filters products by search text with uppercase input', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'DRAGON' } })
 
     expect(screen.getByText('Dragonfruit')).toBeInTheDocument()
     expect(screen.queryByText('Apple')).not.toBeInTheDocument()
   })
 
-  it('filters products by search text with partial match', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
+  it('filters products by search text with partial match', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'fruit' } })
 
     expect(screen.getByText('Dragonfruit')).toBeInTheDocument()
@@ -242,10 +246,8 @@ describe('FilterableProductTable', () => {
     expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
   })
 
-  it('filters to show only in-stock products when checkbox is checked', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const checkbox = screen.getByRole('checkbox', {
+  it('filters to show only in-stock products when checkbox is checked', async () => {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
     fireEvent.click(checkbox)
@@ -258,10 +260,8 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Peas')).toBeInTheDocument()
   })
 
-  it('shows all products again when checkbox is unchecked', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const checkbox = screen.getByRole('checkbox', {
+  it('shows all products again when checkbox is unchecked', async () => {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
 
@@ -274,11 +274,9 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Passionfruit')).toBeInTheDocument()
   })
 
-  it('combines search and in-stock filters', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
-    const checkbox = screen.getByRole('checkbox', {
+  it('combines search and in-stock filters', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
 
@@ -293,20 +291,16 @@ describe('FilterableProductTable', () => {
     expect(screen.queryByText('Passionfruit')).not.toBeInTheDocument()
   })
 
-  it('shows no results when filter matches nothing', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
+  it('shows no results when filter matches nothing', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'nonexistent' } })
 
     expect(screen.queryByText('Apple')).not.toBeInTheDocument()
     expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
   })
 
-  it('clears search filter and shows all products', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const input = screen.getByPlaceholderText('Search...')
+  it('clears search filter and shows all products', async () => {
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'apple' } })
     expect(screen.getByText('Apple')).toBeInTheDocument()
     expect(screen.queryByText('Dragonfruit')).not.toBeInTheDocument()
@@ -318,10 +312,8 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Passionfruit')).toBeInTheDocument()
   })
 
-  it('renders category headers even when filter reduces products in category', () => {
-    render(<FilterableProductTable products={PRODUCTS} />)
-
-    const checkbox = screen.getByRole('checkbox', {
+  it('renders category headers even when filter reduces products in category', async () => {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
     fireEvent.click(checkbox)
@@ -331,11 +323,22 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Peas')).toBeInTheDocument()
   })
+})
 
-  it('handles empty product list', () => {
-    render(<FilterableProductTable products={[]} />)
+describe('FilterableProductTable with empty products', () => {
+  beforeEach(() => {
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: FilterableProductTable,
+        loader: () => [],
+      },
+    ])
+    render(<Stub initialEntries={['/']} />)
+  })
 
-    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
+  it('renders search and table headers', async () => {
+    expect(await screen.findByPlaceholderText('Search...')).toBeInTheDocument()
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
   })
