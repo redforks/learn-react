@@ -1,4 +1,5 @@
-import { FilterableProductTable, type Product } from './FilterableProductTable'
+import type { RouteObject } from 'react-router-dom'
+import { Page, type Product } from './FilterableProductTable'
 
 const PRODUCTS: Array<Product> = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
@@ -9,6 +10,11 @@ const PRODUCTS: Array<Product> = [
   { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
 ]
 
-export default function ProductTable() {
-  return <FilterableProductTable products={PRODUCTS} />
+function loader(): Product[] {
+  return PRODUCTS
 }
+
+export default {
+  Component: Page,
+  loader,
+} as const satisfies RouteObject

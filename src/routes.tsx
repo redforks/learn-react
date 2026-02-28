@@ -1,7 +1,7 @@
 import type { RouteObject } from 'react-router-dom'
 import Home from './pages/Home'
 import Layout from './pages/Layout'
-import ProductTable from './pages/product-table/ProductTable'
+import productLoaderRoute from './pages/product-table/route'
 import Todo from './pages/Todo'
 import Game from './pages/tic-tac-toe/Game'
 
@@ -22,8 +22,8 @@ export default [
         element: <Todo />,
       },
       {
+        ...productLoaderRoute,
         path: '/product-table',
-        element: <ProductTable />,
       },
     ],
   },

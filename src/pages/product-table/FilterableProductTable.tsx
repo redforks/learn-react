@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLoaderData } from 'react-router-dom'
 
 export interface Product {
   category: string
@@ -143,4 +144,9 @@ export function FilterableProductTable({
       <ProductTable products={filtered} />
     </div>
   )
+}
+
+export function Page() {
+  const products = useLoaderData<Product[]>()
+  return <FilterableProductTable products={products} />
 }
