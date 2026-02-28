@@ -10,7 +10,7 @@ import Game from './pages/tic-tac-toe/Game'
 
 function Home() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="min-h-screen p-8 flex flex-col gap-4">
       <h1 className="text-3xl font-bold">Learn React</h1>
       <nav>
         <ul className="list-disc pl-6 space-y-2">
@@ -51,11 +51,7 @@ function Layout() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <div className="min-h-screen p-8">
-        <Home />
-      </div>
-    ),
+    element: <Home />,
   },
   {
     element: <Layout />,
