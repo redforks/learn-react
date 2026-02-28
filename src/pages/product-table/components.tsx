@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useLoaderData } from 'react-router-dom'
 
-export interface Product {
+export type Product = {
   category: string
   price: string
   stocked: boolean
   name: string
 }
 
-interface SearchArgs {
+type SearchArgs = {
   search?: string
   inStockOnly?: boolean
 }

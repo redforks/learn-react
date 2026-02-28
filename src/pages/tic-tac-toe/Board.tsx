@@ -1,6 +1,6 @@
 import { calculateWinner, type Player } from './game'
 
-interface SquareProps {
+type SquareProps = {
   value: Player | null
   onClick: () => void
 }
@@ -17,7 +17,7 @@ function Square({ value, onClick }: SquareProps) {
   )
 }
 
-interface BoardProps {
+type BoardProps = {
   squares: Array<Player | null>
   currentPlayer: Player
   onPlay: (nextSquares: Array<Player | null>) => void

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Board } from './Board'
 import { Player } from './game'
 
-interface HistoryEntry {
+type HistoryEntry = {
   squares: Array<Player | null>
 }
 
