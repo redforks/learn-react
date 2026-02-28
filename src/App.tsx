@@ -1,4 +1,9 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Link,
+  Outlet,
+  RouterProvider,
+} from 'react-router-dom'
 import ProductTable from './pages/product-table/ProductTable'
 import Todo from './pages/Todo'
 import Game from './pages/tic-tac-toe/Game'
@@ -30,7 +35,7 @@ function Home() {
   )
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout() {
   return (
     <div className="min-h-screen p-8">
       <nav className="mb-6">
@@ -38,48 +43,39 @@ function Layout({ children }: { children: React.ReactNode }) {
           ← Home
         </Link>
       </nav>
-      {children}
+      <Outlet />
     </div>
   )
 }
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <div className="min-h-screen p-8">
+        <Home />
+      </div>
+    ),
+  },
+  {
+    element: <Layout />,
+    children: [
+      {
+        path: '/tic-tac-toe',
+        element: <Game />,
+      },
+      {
+        path: '/todo',
+        element: <Todo />,
+      },
+      {
+        path: '/product-table',
+        element: <ProductTable />,
+      },
+    ],
+  },
+])
+
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="min-h-screen p-8">
-              <Home />
-            </div>
-          }
-        />
-        <Route
-          path="/tic-tac-toe"
-          element={
-            <Layout>
-              <Game />
-            </Layout>
-          }
-        />
-        <Route
-          path="/todo"
-          element={
-            <Layout>
-              <Todo />
-            </Layout>
-          }
-        />
-        <Route
-          path="/product-table"
-          element={
-            <Layout>
-              <ProductTable />
-            </Layout>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
-  )
+  return <RouterProvider router={router} />
 }
