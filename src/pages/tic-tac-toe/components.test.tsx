@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import Game from './Game'
+import { Game } from './components'
 
 describe('Game', () => {
   it('renders the board', () => {

@@ -1,4 +1,4 @@
-import { calculateWinner, Player } from './game'
+import { calculateWinner, Player } from './data'
 
 describe('calculateWinner', () => {
   it('returns null for empty board', () => {
