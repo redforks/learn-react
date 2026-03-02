@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useFetcher, useLoaderData } from 'react-router-dom'
+import { useFetcher, useLoaderData, useSubmit } from 'react-router-dom'
 import type { TodoItem } from './data'
 import { countRemaining, Intent } from './data'
 
@@ -85,101 +85,93 @@ type TodoItemRowProps = {
 function TodoItemRow({ todo }: TodoItemRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingText, setEditingText] = useState(todo.text)
-  const fetcher = useFetcher()
-
-  function handleToggle() {
-    fetcher.submit(
-      { intent: Intent.Toggle, id: String(todo.id) },
-      { method: 'post' },
-    )
-  }
-
-  function handleDelete() {
-    fetcher.submit(
-      { intent: Intent.Delete, id: String(todo.id) },
-      { method: 'post' },
-    )
-  }
+  const toggleFetcher = useFetcher()
+  const actionFetcher = useFetcher()
+  const submit = useSubmit()
 
   function handleStartEditing() {
     setIsEditing(true)
     setEditingText(todo.text)
   }
 
-  function handleSave() {
-    const trimmed = editingText.trim()
-    if (!trimmed) return
-    fetcher.submit(
-      { intent: Intent.Update, id: String(todo.id), text: trimmed },
-      { method: 'post' },
-    )
-    setIsEditing(false)
-  }
-
   function handleCancelEditing() {
     setIsEditing(false)
-    setEditingText(todo.text)
   }
 
   return (
     <li className="flex items-center gap-3 border border-zinc-200 rounded px-3 py-2 group">
-      <input
-        type="checkbox"
-        checked={todo.completed}
-        onChange={handleToggle}
-        className="size-4 accent-blue-500"
-      />
+      {/* Toggle form */}
+      <toggleFetcher.Form method="post" className="contents">
+        <input type="hidden" name="id" value={todo.id} />
+        <input type="hidden" name="intent" value={Intent.Toggle} />
+        <input
+          type="checkbox"
+          checked={todo.completed}
+          onChange={(e) => submit(e.target.form)}
+          className="size-4 accent-blue-500"
+        />
+      </toggleFetcher.Form>
 
-      {isEditing ? (
-        <div className="flex-1 flex gap-2">
-          <input
-            type="text"
-            value={editingText}
-            onChange={(e) => setEditingText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave()
-              if (e.key === 'Escape') handleCancelEditing()
-            }}
-            className="flex-1 border border-zinc-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            type="button"
-            onClick={handleSave}
-            className="text-sm text-green-600 hover:text-green-800"
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            onClick={handleCancelEditing}
-            className="text-sm text-zinc-500 hover:text-zinc-700"
-          >
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <>
-          <span
-            className={`flex-1 ${todo.completed ? 'line-through text-zinc-400' : ''}`}
-          >
-            {todo.text}
-          </span>
-          <button
-            type="button"
-            onClick={handleStartEditing}
-            className="text-sm text-zinc-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            Delete
-          </button>
-        </>
-      )}
+      {/* Edit/Delete form */}
+      <actionFetcher.Form method="post" className="contents">
+        <input type="hidden" name="id" value={todo.id} />
+
+        {isEditing ? (
+          <div className="flex-1 flex gap-2">
+            <input
+              type="text"
+              name="text"
+              value={editingText}
+              onChange={(e) => setEditingText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') handleCancelEditing()
+              }}
+              className="flex-1 border border-zinc-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              type="submit"
+              name="intent"
+              value={Intent.Update}
+              onClick={() => {
+                if (editingText.trim()) setIsEditing(false)
+              }}
+              className="text-sm text-green-600 hover:text-green-800"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelEditing}
+              className="text-sm text-zinc-500 hover:text-zinc-700"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <>
+            <span
+              className={`flex-1 ${todo.completed ? 'line-through text-zinc-400' : ''}`}
+            >
+              {todo.text}
+            </span>
+            <button
+              type="button"
+              onClick={handleStartEditing}
+              className="text-sm text-zinc-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              Edit
+            </button>
+            <button
+              type="submit"
+              name="intent"
+              value={Intent.Delete}
+              className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              Delete
+            </button>
+          </>
+        )}
+      </actionFetcher.Form>
     </li>
   )
 }
