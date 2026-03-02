@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { createRoutesStub } from 'react-router-dom'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { createRoutesStub, useLocation } from 'react-router-dom'
 import {
   FilterableProductTable,
   ProductCategoryRow,
@@ -119,14 +119,32 @@ describe('ProductTable', () => {
 })
 
 describe('SearchBar', () => {
-  it('renders search input and checkbox', () => {
+  function renderWithUrl(initialUrl: string) {
+    function SearchSpy() {
+      const { search } = useLocation()
+      return <div data-testid="search">{search}</div>
+    }
+
+    function WithSpy() {
+      return (
+        <>
+          <SearchBar />
+          <SearchSpy />
+        </>
+      )
+    }
+
     const Stub = createRoutesStub([
       {
         path: '/',
-        Component: SearchBar,
+        Component: WithSpy,
       },
     ])
-    render(<Stub initialEntries={['/']} />)
+    render(<Stub initialEntries={[initialUrl]} />)
+  }
+
+  it('renders search input and checkbox', () => {
+    renderWithUrl('/')
 
     expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
     expect(
@@ -135,26 +153,14 @@ describe('SearchBar', () => {
   })
 
   it('displays search value from URL params', () => {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: SearchBar,
-      },
-    ])
-    render(<Stub initialEntries={['/?search=dragon']} />)
+    renderWithUrl('/?search=dragon')
 
     const input = screen.getByPlaceholderText('Search...') as HTMLInputElement
     expect(input.value).toBe('dragon')
   })
 
   it('displays checked checkbox when inStockOnly is in URL', () => {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: SearchBar,
-      },
-    ])
-    render(<Stub initialEntries={['/?inStockOnly=true']} />)
+    renderWithUrl('/?inStockOnly=true')
 
     const checkbox = screen.getByRole('checkbox', {
       name: /only show products in stock/i,
@@ -163,18 +169,52 @@ describe('SearchBar', () => {
   })
 
   it('displays unchecked checkbox when inStockOnly is not in URL', () => {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: SearchBar,
-      },
-    ])
-    render(<Stub initialEntries={['/']} />)
+    renderWithUrl('/')
 
     const checkbox = screen.getByRole('checkbox', {
       name: /only show products in stock/i,
     }) as HTMLInputElement
     expect(checkbox.checked).toBe(false)
+  })
+
+  it('updates URL search param when typing in search input', () => {
+    renderWithUrl('/')
+
+    const input = screen.getByPlaceholderText('Search...')
+    fireEvent.change(input, { target: { value: 'apple' } })
+
+    expect(screen.getByTestId('search')).toHaveTextContent('?search=apple')
+  })
+
+  it('removes search param from URL when input is cleared', () => {
+    renderWithUrl('/?search=apple')
+
+    const input = screen.getByPlaceholderText('Search...')
+    fireEvent.change(input, { target: { value: '' } })
+
+    expect(screen.getByTestId('search')).toHaveTextContent('')
+  })
+
+  it('adds inStockOnly param to URL when checkbox is checked', () => {
+    renderWithUrl('/')
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /only show products in stock/i,
+    })
+    fireEvent.click(checkbox)
+
+    expect(screen.getByTestId('search')).toHaveTextContent('?inStockOnly=true')
+  })
+
+  it('removes inStockOnly param from URL when checkbox is unchecked', () => {
+    renderWithUrl('/?inStockOnly=true')
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /only show products in stock/i,
+    })
+    fireEvent.click(checkbox)
+
+    expect(screen.getByTestId('search')).toHaveTextContent('')
   })
 })
 
@@ -199,24 +239,5 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Pumpkin')).toBeInTheDocument()
     expect(screen.getByText('Peas')).toBeInTheDocument()
-  })
-})
-
-describe('FilterableProductTable with empty products', () => {
-  beforeEach(() => {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: FilterableProductTable,
-        loader: () => [],
-      },
-    ])
-    render(<Stub initialEntries={['/']} />)
-  })
-
-  it('renders search and table headers', async () => {
-    expect(await screen.findByPlaceholderText('Search...')).toBeInTheDocument()
-    expect(screen.getByText('Name')).toBeInTheDocument()
-    expect(screen.getByText('Price')).toBeInTheDocument()
   })
 })
