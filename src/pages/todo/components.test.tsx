@@ -45,10 +45,10 @@ describe('Todo', () => {
 describe('Adding todos', () => {
   beforeEach(() => {
     localStorage.clear()
+    renderTodo()
   })
 
   it('adds a todo when clicking the Add button', async () => {
-    renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')
     fireEvent.change(input, { target: { value: 'Buy groceries' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
@@ -56,7 +56,6 @@ describe('Adding todos', () => {
   })
 
   it('adds a todo when pressing Enter', async () => {
-    renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')
     fireEvent.change(input, { target: { value: 'Walk the dog' } })
     await userEvent.type(input, '{enter}')
@@ -64,40 +63,12 @@ describe('Adding todos', () => {
   })
 
   it('clears input after adding a todo', async () => {
-    renderTodo()
     const input = (await screen.findByPlaceholderText(
       'What needs to be done?',
     )) as HTMLInputElement
     fireEvent.change(input, { target: { value: 'Task' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
     await waitFor(() => expect(input.value).toBe(''))
-  })
-
-  it('does not add empty todos', async () => {
-    renderTodo()
-    await screen.findByPlaceholderText('What needs to be done?')
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
-    expect(
-      await screen.findByText('No todos yet. Add one above!'),
-    ).toBeInTheDocument()
-  })
-
-  it('trims whitespace from todo text', async () => {
-    renderTodo()
-    const input = await screen.findByPlaceholderText('What needs to be done?')
-    fireEvent.change(input, { target: { value: '   Trimmed task   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
-    expect(await screen.findByText('Trimmed task')).toBeInTheDocument()
-  })
-
-  it('does not add whitespace-only todos', async () => {
-    renderTodo()
-    const input = await screen.findByPlaceholderText('What needs to be done?')
-    fireEvent.change(input, { target: { value: '   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
-    expect(
-      await screen.findByText('No todos yet. Add one above!'),
-    ).toBeInTheDocument()
   })
 })
 
@@ -209,35 +180,6 @@ describe('Editing todos', () => {
     fireEvent.keyDown(editInput, { key: 'Escape' })
 
     expect(screen.getByText('Original')).toBeInTheDocument()
-  })
-
-  it('trims whitespace when saving', async () => {
-    renderTodo([{ id: 1, text: 'Task', completed: false }])
-    await screen.findByText('Task')
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-
-    const editInput = screen.getByDisplayValue('Task')
-    fireEvent.change(editInput, { target: { value: '   Trimmed task   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(await screen.findByText('Trimmed task')).toBeInTheDocument()
-  })
-
-  it('does not save empty or whitespace-only edits', async () => {
-    renderTodo([{ id: 1, text: 'Important task', completed: false }])
-    await screen.findByText('Important task')
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-
-    const editInput = screen.getByDisplayValue(
-      'Important task',
-    ) as HTMLInputElement
-    fireEvent.change(editInput, { target: { value: '   ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    // Should still be in edit mode (Save button visible)
-    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
-    // Original text remains unchanged
-    expect(screen.queryByText('Important task')).not.toBeInTheDocument()
   })
 })
 

@@ -78,11 +78,7 @@ function AddTodoForm() {
   )
 }
 
-type TodoItemRowProps = {
-  todo: TodoItem
-}
-
-function TodoItemRow({ todo }: TodoItemRowProps) {
+function TodoItemRow({ todo }: { todo: TodoItem }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingText, setEditingText] = useState(todo.text)
   const toggleFetcher = useFetcher()
@@ -94,7 +90,7 @@ function TodoItemRow({ todo }: TodoItemRowProps) {
     setEditingText(todo.text)
   }
 
-  function handleCancelEditing() {
+  function cancelEditing() {
     setIsEditing(false)
   }
 
@@ -124,7 +120,7 @@ function TodoItemRow({ todo }: TodoItemRowProps) {
               value={editingText}
               onChange={(e) => setEditingText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Escape') handleCancelEditing()
+                if (e.key === 'Escape') cancelEditing()
               }}
               className="flex-1 border border-zinc-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
@@ -133,7 +129,7 @@ function TodoItemRow({ todo }: TodoItemRowProps) {
               name="intent"
               value={Intent.Update}
               onClick={() => {
-                if (editingText.trim()) setIsEditing(false)
+                if (editingText.trim()) cancelEditing()
               }}
               className="text-sm text-green-600 hover:text-green-800"
             >
@@ -141,7 +137,7 @@ function TodoItemRow({ todo }: TodoItemRowProps) {
             </button>
             <button
               type="button"
-              onClick={handleCancelEditing}
+              onClick={cancelEditing}
               className="text-sm text-zinc-500 hover:text-zinc-700"
             >
               Cancel
