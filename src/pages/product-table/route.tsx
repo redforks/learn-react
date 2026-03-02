@@ -10,8 +10,21 @@ const PRODUCTS: Array<Product> = [
   { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
 ]
 
-function loader(): Product[] {
-  return PRODUCTS
+function loader({ request }: { request: Request }): Product[] {
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') ?? ''
+  const inStockOnly = url.searchParams.get('inStockOnly') === 'true'
+
+  return PRODUCTS.filter((p) => {
+    if (inStockOnly && !p.stocked) {
+      return false
+    }
+
+    if (search && p.name.toLowerCase().indexOf(search.toLowerCase()) === -1) {
+      return false
+    }
+    return true
+  })
 }
 
 export default {

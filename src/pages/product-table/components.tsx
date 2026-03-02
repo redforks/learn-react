@@ -1,16 +1,10 @@
-import { useState } from 'react'
-import { useLoaderData } from 'react-router-dom'
+import { useLoaderData, useSearchParams } from 'react-router-dom'
 
 export type Product = {
   category: string
   price: string
   stocked: boolean
   name: string
-}
-
-type SearchArgs = {
-  search?: string
-  inStockOnly?: boolean
 }
 
 export function ProductCategoryRow({ category }: { category: string }) {
@@ -75,24 +69,30 @@ export function ProductTable({ products }: { products: Array<Product> }) {
   )
 }
 
-export function SearchBar({
-  args,
-  setArgs,
-}: {
-  args: SearchArgs
-  setArgs: (args: SearchArgs) => void
-}) {
+export function SearchBar() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = searchParams.get('search') ?? ''
+  const inStockOnly = searchParams.get('inStockOnly') === 'true'
+
   function toggleInStockOnly() {
-    setArgs({
-      ...args,
-      inStockOnly: !args.inStockOnly,
+    setSearchParams((prev) => {
+      if (inStockOnly) {
+        prev.delete('inStockOnly')
+      } else {
+        prev.set('inStockOnly', 'true')
+      }
+      return prev
     })
   }
 
-  function updateSearch(search: string): void {
-    setArgs({
-      ...args,
-      search,
+  function updateSearch(newSearch: string): void {
+    setSearchParams((prev) => {
+      if (newSearch) {
+        prev.set('search', newSearch)
+      } else {
+        prev.delete('search')
+      }
+      return prev
     })
   }
 
@@ -100,7 +100,7 @@ export function SearchBar({
     <form className="mb-4 flex items-center gap-4">
       <input
         type="text"
-        value={args.search ?? ''}
+        value={search}
         onChange={(e) => updateSearch(e.target.value)}
         placeholder="Search..."
         className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -108,7 +108,7 @@ export function SearchBar({
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
-          checked={!!args.inStockOnly}
+          checked={inStockOnly}
           onChange={toggleInStockOnly}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
@@ -120,25 +120,11 @@ export function SearchBar({
 
 export function FilterableProductTable() {
   const products = useLoaderData<Product[]>()
-  const [args, setArgs] = useState<SearchArgs>({})
-  const filtered = products.filter((p) => {
-    if (args.inStockOnly && !p.stocked) {
-      return false
-    }
-
-    if (
-      args.search &&
-      p.name.toLowerCase().indexOf(args.search.toLowerCase()) === -1
-    ) {
-      return false
-    }
-    return true
-  })
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-md">
-      <SearchBar args={args} setArgs={setArgs} />
-      <ProductTable products={filtered} />
+      <SearchBar />
+      <ProductTable products={products} />
     </div>
   )
 }
