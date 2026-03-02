@@ -85,6 +85,10 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
   const actionFetcher = useFetcher()
   const submit = useSubmit()
 
+  if (actionFetcher.state === 'idle' && actionFetcher.data && isEditing) {
+    setIsEditing(false)
+  }
+
   function handleStartEditing() {
     setIsEditing(true)
     setEditingText(todo.text)
@@ -128,9 +132,6 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
               type="submit"
               name="intent"
               value={Intent.Update}
-              onClick={() => {
-                if (editingText.trim()) cancelEditing()
-              }}
               className="text-sm text-green-600 hover:text-green-800"
             >
               Save

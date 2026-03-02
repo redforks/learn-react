@@ -133,13 +133,15 @@ describe('Editing todos', () => {
   })
 
   it('saves edited todo when clicking Save', async () => {
+    const user = userEvent.setup()
     renderTodo([{ id: 1, text: 'Old text', completed: false }])
     await screen.findByText('Old text')
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
 
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
     const editInput = screen.getByDisplayValue('Old text')
-    fireEvent.change(editInput, { target: { value: 'New text' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await user.clear(editInput)
+    await user.type(editInput, 'New text')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('New text')).toBeInTheDocument()
     expect(screen.queryByText('Old text')).not.toBeInTheDocument()
