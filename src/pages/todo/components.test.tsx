@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import Todo from './Todo'
+import { Todo } from './components'
 
 describe('Todo', () => {
   it('renders empty state message when no todos exist', () => {
