@@ -1,4 +1,9 @@
-import { useLoaderData, useSearchParams } from 'react-router-dom'
+import {
+  Form,
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+} from 'react-router-dom'
 
 export type Product = {
   category: string
@@ -70,51 +75,33 @@ export function ProductTable({ products }: { products: Array<Product> }) {
 }
 
 export function SearchBar() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
+  const submit = useSubmit()
   const search = searchParams.get('search') ?? ''
   const inStockOnly = searchParams.get('inStockOnly') === 'true'
 
-  function toggleInStockOnly() {
-    setSearchParams((prev) => {
-      if (inStockOnly) {
-        prev.delete('inStockOnly')
-      } else {
-        prev.set('inStockOnly', 'true')
-      }
-      return prev
-    })
-  }
-
-  function updateSearch(newSearch: string): void {
-    setSearchParams((prev) => {
-      if (newSearch) {
-        prev.set('search', newSearch)
-      } else {
-        prev.delete('search')
-      }
-      return prev
-    })
-  }
-
   return (
-    <form className="mb-4 flex items-center gap-4">
+    <Form method="get" className="mb-4 flex items-center gap-4">
       <input
         type="text"
+        name="search"
         value={search}
-        onChange={(e) => updateSearch(e.target.value)}
         placeholder="Search..."
+        onChange={(e) => submit(e.target.form)}
         className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
       />
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
+          name="inStockOnly"
+          value="true"
           checked={inStockOnly}
-          onChange={toggleInStockOnly}
+          onChange={(e) => submit(e.target.form)}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         Only show products in stock
       </label>
-    </form>
+    </Form>
   )
 }
 

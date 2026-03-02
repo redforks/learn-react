@@ -192,7 +192,7 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: '' } })
 
-    expect(screen.getByTestId('search')).toHaveTextContent('')
+    expect(screen.getByTestId('search')).toHaveTextContent('?search=')
   })
 
   it('adds inStockOnly param to URL when checkbox is checked', () => {
@@ -203,7 +203,9 @@ describe('SearchBar', () => {
     })
     fireEvent.click(checkbox)
 
-    expect(screen.getByTestId('search')).toHaveTextContent('?inStockOnly=true')
+    expect(screen.getByTestId('search')).toHaveTextContent(
+      '?search=&inStockOnly=true',
+    )
   })
 
   it('removes inStockOnly param from URL when checkbox is unchecked', () => {
@@ -214,7 +216,7 @@ describe('SearchBar', () => {
     })
     fireEvent.click(checkbox)
 
-    expect(screen.getByTestId('search')).toHaveTextContent('')
+    expect(screen.getByTestId('search')).toHaveTextContent('?search=')
   })
 })
 
