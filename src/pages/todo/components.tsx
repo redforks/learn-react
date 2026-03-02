@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useFetcher, useLoaderData, useSubmit } from 'react-router-dom'
 import type { TodoItem } from './data'
 import { countRemaining, Intent } from './data'
@@ -35,22 +35,19 @@ export function Todo() {
 }
 
 function AddTodoForm() {
-  const [input, setInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   const fetcher = useFetcher()
 
   // Clear input after successful submission
-  useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data) {
-      setInput('')
-    }
-  }, [fetcher.state, fetcher.data])
+  if (fetcher.state === 'idle' && fetcher.data && inputRef.current) {
+    inputRef.current.value = ''
+  }
 
   function handleSubmit(e: React.SyntheticEvent) {
-    const trimmed = input.trim()
+    const trimmed = inputRef.current?.value.trim()
     if (!trimmed) {
       e.preventDefault()
     }
-    // Let fetcher.Form handle the submission naturally
   }
 
   return (
@@ -61,10 +58,9 @@ function AddTodoForm() {
     >
       <input type="hidden" name="intent" value={Intent.Create} />
       <input
+        ref={inputRef}
         type="text"
         name="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
         placeholder="What needs to be done?"
         className="flex-1 border border-zinc-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
@@ -80,7 +76,7 @@ function AddTodoForm() {
 
 function TodoItemRow({ todo }: { todo: TodoItem }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editingText, setEditingText] = useState(todo.text)
+  const editInputRef = useRef<HTMLInputElement>(null)
   const toggleFetcher = useFetcher()
   const actionFetcher = useFetcher()
   const submit = useSubmit()
@@ -91,7 +87,6 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
 
   function handleStartEditing() {
     setIsEditing(true)
-    setEditingText(todo.text)
   }
 
   function cancelEditing() {
@@ -119,10 +114,11 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
         {isEditing ? (
           <div className="flex-1 flex gap-2">
             <input
+              ref={editInputRef}
+              key={todo.id}
               type="text"
               name="text"
-              value={editingText}
-              onChange={(e) => setEditingText(e.target.value)}
+              defaultValue={todo.text}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') cancelEditing()
               }}
