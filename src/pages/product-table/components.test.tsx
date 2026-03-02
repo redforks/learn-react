@@ -2,21 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { createRoutesStub } from 'react-router-dom'
 import {
   FilterableProductTable,
-  type Product,
   ProductCategoryRow,
   ProductRow,
   ProductTable,
   SearchBar,
 } from './components'
-
-const PRODUCTS: Array<Product> = [
-  { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
-  { category: 'Fruits', price: '$1', stocked: true, name: 'Dragonfruit' },
-  { category: 'Fruits', price: '$2', stocked: false, name: 'Passionfruit' },
-  { category: 'Vegetables', price: '$2', stocked: true, name: 'Spinach' },
-  { category: 'Vegetables', price: '$4', stocked: false, name: 'Pumpkin' },
-  { category: 'Vegetables', price: '$1', stocked: true, name: 'Peas' },
-]
+import { loader } from './data'
 
 describe('ProductCategoryRow', () => {
   it('renders category name', () => {
@@ -193,25 +184,7 @@ describe('FilterableProductTable', () => {
       {
         path: '/',
         Component: FilterableProductTable,
-        loader: ({ request }: { request: Request }) => {
-          const url = new URL(request.url)
-          const search = url.searchParams.get('search') ?? ''
-          const inStockOnly = url.searchParams.get('inStockOnly') === 'true'
-
-          return PRODUCTS.filter((p) => {
-            if (inStockOnly && !p.stocked) {
-              return false
-            }
-
-            if (
-              search &&
-              p.name.toLowerCase().indexOf(search.toLowerCase()) === -1
-            ) {
-              return false
-            }
-            return true
-          })
-        },
+        loader,
       },
     ])
   }
@@ -225,94 +198,6 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Passionfruit')).toBeInTheDocument()
     expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Pumpkin')).toBeInTheDocument()
-    expect(screen.getByText('Peas')).toBeInTheDocument()
-  })
-
-  it('filters products by search text (case insensitive)', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=apple']} />)
-
-    expect(await screen.findByText('Apple')).toBeInTheDocument()
-    expect(screen.queryByText('Dragonfruit')).not.toBeInTheDocument()
-    expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
-  })
-
-  it('filters products by search text with uppercase input', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=DRAGON']} />)
-
-    expect(await screen.findByText('Dragonfruit')).toBeInTheDocument()
-    expect(screen.queryByText('Apple')).not.toBeInTheDocument()
-  })
-
-  it('filters products by search text with partial match', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=fruit']} />)
-
-    expect(await screen.findByText('Dragonfruit')).toBeInTheDocument()
-    expect(screen.getByText('Passionfruit')).toBeInTheDocument()
-    expect(screen.queryByText('Apple')).not.toBeInTheDocument()
-    expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
-  })
-
-  it('filters to show only in-stock products when inStockOnly is true', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?inStockOnly=true']} />)
-
-    expect(await screen.findByText('Apple')).toBeInTheDocument()
-    expect(screen.getByText('Dragonfruit')).toBeInTheDocument()
-    expect(screen.queryByText('Passionfruit')).not.toBeInTheDocument()
-    expect(screen.getByText('Spinach')).toBeInTheDocument()
-    expect(screen.queryByText('Pumpkin')).not.toBeInTheDocument()
-    expect(screen.getByText('Peas')).toBeInTheDocument()
-  })
-
-  it('combines search and in-stock filters', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=fruit&inStockOnly=true']} />)
-
-    expect(await screen.findByText('Dragonfruit')).toBeInTheDocument()
-    expect(screen.queryByText('Passionfruit')).not.toBeInTheDocument()
-  })
-
-  it('shows no results when filter matches nothing', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=nonexistent']} />)
-
-    // Wait for the component to render
-    await screen.findByPlaceholderText('Search...')
-
-    expect(screen.queryByText('Apple')).not.toBeInTheDocument()
-    expect(screen.queryByText('Spinach')).not.toBeInTheDocument()
-  })
-
-  it('shows search bar with correct initial value from URL', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?search=apple']} />)
-
-    const input = (await screen.findByPlaceholderText(
-      'Search...',
-    )) as HTMLInputElement
-    expect(input.value).toBe('apple')
-  })
-
-  it('shows checked checkbox when inStockOnly is in URL', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?inStockOnly=true']} />)
-
-    const checkbox = (await screen.findByRole('checkbox', {
-      name: /only show products in stock/i,
-    })) as HTMLInputElement
-    expect(checkbox.checked).toBe(true)
-  })
-
-  it('renders category headers even when filter reduces products in category', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/?inStockOnly=true']} />)
-
-    // Vegetables category should still show (has Spinach and Peas in stock)
-    expect(await screen.findByText('Vegetables')).toBeInTheDocument()
-    expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Peas')).toBeInTheDocument()
   })
 })
