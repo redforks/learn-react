@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router-dom'
 import { Todo } from './components'
 import { action, loader, STORAGE_KEY } from './data'
@@ -58,7 +59,7 @@ describe('Adding todos', () => {
     renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')
     fireEvent.change(input, { target: { value: 'Walk the dog' } })
-    fireEvent.keyDown(input, { key: 'Enter' })
+    await userEvent.type(input, '{enter}')
     expect(await screen.findByText('Walk the dog')).toBeInTheDocument()
   })
 
@@ -180,7 +181,7 @@ describe('Editing todos', () => {
 
     const editInput = screen.getByDisplayValue('Before edit')
     fireEvent.change(editInput, { target: { value: 'After edit' } })
-    fireEvent.keyDown(editInput, { key: 'Enter' })
+    await userEvent.type(editInput, '{enter}')
 
     expect(await screen.findByText('After edit')).toBeInTheDocument()
   })

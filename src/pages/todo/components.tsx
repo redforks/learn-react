@@ -65,11 +65,6 @@ function AddTodoForm() {
         name="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.currentTarget.form?.requestSubmit()
-          }
-        }}
         placeholder="What needs to be done?"
         className="flex-1 border border-zinc-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
