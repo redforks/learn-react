@@ -1,6 +1,6 @@
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
-import type { TodoItem } from './types'
+import type { TodoItem } from './data'
 
 let todos: TodoItem[] = []
 

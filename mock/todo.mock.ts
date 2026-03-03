@@ -1,5 +1,5 @@
 import { defineMock, defineMockData } from 'vite-plugin-mock-dev-server'
-import type { TodoItem } from '../src/pages/todo/types'
+import type { TodoItem } from '../src/pages/todo/data'
 
 // Use defineMockData for shared state across mock handlers
 const todos = defineMockData<TodoItem[]>('todos', [])

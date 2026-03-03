@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router-dom'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { Todo } from './components'
+import type { TodoItem } from './data'
 import { action, loader } from './data'
 import { resetTodos, server } from './mocks'
-import type { TodoItem } from './types'
 
 beforeAll(() => server.listen())
 

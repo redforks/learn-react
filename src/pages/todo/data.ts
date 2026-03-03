@@ -1,13 +1,66 @@
-import {
-  createTodo,
-  deleteTodo,
-  fetchTodos,
-  toggleTodo,
-  updateTodo,
-} from './api'
-import { countRemaining, Intent, type TodoItem } from './types'
+export enum Intent {
+  Create = 'create',
+  Delete = 'delete',
+  Toggle = 'toggle',
+  Update = 'update',
+}
 
-export { Intent, type TodoItem, countRemaining }
+export type TodoItem = {
+  id: number
+  text: string
+  completed: boolean
+}
+
+export function countRemaining(todos: TodoItem[]): number {
+  return todos.filter((t) => !t.completed).length
+}
+
+const API_BASE = '/api/todos'
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`)
+  }
+  return response.json()
+}
+
+export async function fetchTodos(): Promise<TodoItem[]> {
+  const response = await fetch(API_BASE)
+  return handleResponse<TodoItem[]>(response)
+}
+
+export async function createTodo(text: string): Promise<TodoItem> {
+  const response = await fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: text.trim() }),
+  })
+  return handleResponse<TodoItem>(response)
+}
+
+export async function updateTodo(id: number, text: string): Promise<TodoItem> {
+  const response = await fetch(`${API_BASE}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: text.trim() }),
+  })
+  return handleResponse<TodoItem>(response)
+}
+
+export async function toggleTodo(id: number): Promise<TodoItem> {
+  const response = await fetch(`${API_BASE}/${id}/toggle`, {
+    method: 'PATCH',
+  })
+  return handleResponse<TodoItem>(response)
+}
+
+export async function deleteTodo(id: number): Promise<undefined> {
+  const response = await fetch(`${API_BASE}/${id}`, {
+    method: 'DELETE',
+  })
+  await handleResponse<{ success: boolean }>(response)
+  return undefined
+}
 
 export async function loader(): Promise<TodoItem[]> {
   return fetchTodos()
