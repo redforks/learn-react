@@ -23,6 +23,7 @@ function renderTodo(initialTodos: TodoItem[] = []) {
     {
       path: '/',
       Component: Todo,
+      HydrateFallback: () => null,
       loader,
       action,
     },

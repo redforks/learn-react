@@ -42,7 +42,13 @@ describe('ProductRow', () => {
       stocked: true,
       name: 'Apple',
     }
-    render(<ProductRow product={product} />)
+    render(
+      <table>
+        <tbody>
+          <ProductRow product={product} />
+        </tbody>
+      </table>,
+    )
 
     expect(screen.getByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('$1')).toBeInTheDocument()
@@ -55,7 +61,13 @@ describe('ProductRow', () => {
       stocked: true,
       name: 'Apple',
     }
-    const { container } = render(<ProductRow product={product} />)
+    const { container } = render(
+      <table>
+        <tbody>
+          <ProductRow product={product} />
+        </tbody>
+      </table>,
+    )
 
     const nameSpan = container.querySelector('span')
     expect(nameSpan).not.toHaveClass('text-red-500')
@@ -68,7 +80,13 @@ describe('ProductRow', () => {
       stocked: false,
       name: 'Passionfruit',
     }
-    const { container } = render(<ProductRow product={product} />)
+    const { container } = render(
+      <table>
+        <tbody>
+          <ProductRow product={product} />
+        </tbody>
+      </table>,
+    )
 
     const nameSpan = container.querySelector('span')
     expect(nameSpan).toHaveClass('text-red-500')
@@ -226,6 +244,7 @@ describe('FilterableProductTable', () => {
       {
         path: '/',
         Component: FilterableProductTable,
+        HydrateFallback: () => null,
         loader,
       },
     ])
