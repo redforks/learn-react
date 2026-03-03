@@ -1,27 +1,27 @@
 # Development server
 dev:
-    bun run vite
+    pnpm exec vite
 
 # Build for production
 build:
-    bun run vite build
+    pnpm exec vite build
 
 # Preview production build
 preview:
-    bun run vite preview
+    pnpm exec vite preview
 
 # Run linter
 lint:
-    bun tsc --noEmit
+    pnpm exec tsc --noEmit
     biome lint src/
 
 # Run tests once
 test:
-    bun run vitest run
+    pnpm exec vitest run
 
 # Run tests in watch mode
 test-watch:
-    bun run vitest
+    pnpm exec vitest
 
 outdated:
-    bun outdated
+    pnpm outdated
