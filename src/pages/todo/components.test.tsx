@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router-dom'
+import { resetTodos } from '../../test/setup'
 import { Todo } from './components'
-import { action, loader, STORAGE_KEY } from './data'
+import { action, loader } from './data'
+import type { TodoItem } from './types'
 
-function renderTodo(
-  initialTodos: { id: number; text: string; completed: boolean }[] = [],
-) {
-  localStorage.setItem('todos', JSON.stringify(initialTodos))
+function renderTodo(initialTodos: TodoItem[] = []) {
+  resetTodos(initialTodos)
 
   const Stub = createRoutesStub([
     {
@@ -22,10 +22,6 @@ function renderTodo(
 }
 
 describe('Todo', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
   it('renders empty state message when no todos exist', async () => {
     renderTodo()
     expect(
@@ -43,12 +39,8 @@ describe('Todo', () => {
 })
 
 describe('Adding todos', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    renderTodo()
-  })
-
   it('adds a todo when clicking the Add button', async () => {
+    renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')
     fireEvent.change(input, { target: { value: 'Buy groceries' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
@@ -56,6 +48,7 @@ describe('Adding todos', () => {
   })
 
   it('adds a todo when pressing Enter', async () => {
+    renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')
     fireEvent.change(input, { target: { value: 'Walk the dog' } })
     await userEvent.type(input, '{enter}')
@@ -63,6 +56,7 @@ describe('Adding todos', () => {
   })
 
   it('clears input after adding a todo', async () => {
+    renderTodo()
     const input = (await screen.findByPlaceholderText(
       'What needs to be done?',
     )) as HTMLInputElement
@@ -73,10 +67,6 @@ describe('Adding todos', () => {
 })
 
 describe('Deleting todos', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
   it('deletes a todo when clicking Delete button', async () => {
     renderTodo([{ id: 1, text: 'Task to delete', completed: false }])
     await screen.findByText('Task to delete')
@@ -91,10 +81,6 @@ describe('Deleting todos', () => {
 })
 
 describe('Toggling todos', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
   it('toggles todo completion when clicking checkbox', async () => {
     renderTodo([{ id: 1, text: 'Complete me', completed: false }])
     const checkbox = (await screen.findByRole('checkbox')) as HTMLInputElement
@@ -118,10 +104,6 @@ describe('Toggling todos', () => {
 })
 
 describe('Editing todos', () => {
-  beforeEach(() => {
-    localStorage.clear()
-  })
-
   it('shows edit input when clicking Edit button', async () => {
     renderTodo([{ id: 1, text: 'Original text', completed: false }])
     await screen.findByText('Original text')
@@ -186,10 +168,6 @@ describe('Editing todos', () => {
 })
 
 describe('Remaining count', () => {
-  beforeEach(() => {
-    localStorage.removeItem(STORAGE_KEY)
-  })
-
   it('shows remaining count when todos exist', async () => {
     renderTodo()
     const input = await screen.findByPlaceholderText('What needs to be done?')

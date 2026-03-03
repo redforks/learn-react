@@ -1,33 +1,16 @@
-export const STORAGE_KEY = 'todos'
+import {
+  createTodo,
+  deleteTodo,
+  fetchTodos,
+  toggleTodo,
+  updateTodo,
+} from './api'
+import { countRemaining, Intent, type TodoItem } from './types'
 
-export enum Intent {
-  Create = 'create',
-  Delete = 'delete',
-  Toggle = 'toggle',
-  Update = 'update',
-}
+export { Intent, type TodoItem, countRemaining }
 
-export type TodoItem = {
-  id: number
-  text: string
-  completed: boolean
-}
-
-function loadFromStorage(): TodoItem[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
-}
-
-function saveToStorage(todos: TodoItem[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-}
-
-export function loader(): TodoItem[] {
-  return loadFromStorage()
+export async function loader(): Promise<TodoItem[]> {
+  return fetchTodos()
 }
 
 export async function action({
@@ -37,54 +20,38 @@ export async function action({
 }): Promise<TodoItem[]> {
   const formData = await request.formData()
   const intent = formData.get('intent')
-  const currentTodos = loadFromStorage()
 
   switch (intent) {
     case Intent.Create: {
       const text = formData.get('text')
-      if (typeof text !== 'string') return currentTodos
+      if (typeof text !== 'string') return fetchTodos()
       const trimmed = text.trim()
-      if (!trimmed) return currentTodos
-      const newTodos = [
-        ...currentTodos,
-        { id: Date.now(), text: trimmed, completed: false },
-      ]
-      saveToStorage(newTodos)
-      return newTodos
+      if (!trimmed) return fetchTodos()
+      await createTodo(trimmed)
+      return fetchTodos()
     }
     case Intent.Delete: {
       const id = Number(formData.get('id'))
-      if (Number.isNaN(id)) return currentTodos
-      const newTodos = currentTodos.filter((t) => t.id !== id)
-      saveToStorage(newTodos)
-      return newTodos
+      if (Number.isNaN(id)) return fetchTodos()
+      await deleteTodo(id)
+      return fetchTodos()
     }
     case Intent.Toggle: {
       const id = Number(formData.get('id'))
-      if (Number.isNaN(id)) return currentTodos
-      const newTodos = currentTodos.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t,
-      )
-      saveToStorage(newTodos)
-      return newTodos
+      if (Number.isNaN(id)) return fetchTodos()
+      await toggleTodo(id)
+      return fetchTodos()
     }
     case Intent.Update: {
       const id = Number(formData.get('id'))
       const text = formData.get('text')
-      if (Number.isNaN(id) || typeof text !== 'string') return currentTodos
+      if (Number.isNaN(id) || typeof text !== 'string') return fetchTodos()
       const trimmed = text.trim()
-      if (!trimmed) return currentTodos
-      const newTodos = currentTodos.map((t) =>
-        t.id === id ? { ...t, text: trimmed } : t,
-      )
-      saveToStorage(newTodos)
-      return newTodos
+      if (!trimmed) return fetchTodos()
+      await updateTodo(id, trimmed)
+      return fetchTodos()
     }
     default:
-      return currentTodos
+      return fetchTodos()
   }
-}
-
-export function countRemaining(todos: TodoItem[]): number {
-  return todos.filter((t) => !t.completed).length
 }

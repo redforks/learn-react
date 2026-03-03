@@ -1,31 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  action,
-  countRemaining,
-  Intent,
-  loader,
-  STORAGE_KEY,
-  type TodoItem,
-} from './data'
-
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-  return {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key]
-    }),
-    clear: vi.fn(() => {
-      store = {}
-    }),
-  }
-})()
-
-Object.defineProperty(global, 'localStorage', { value: localStorageMock })
+import { beforeEach, describe, expect, it } from 'vitest'
+import { resetTodos } from '../../test/setup'
+import { action, countRemaining, Intent, loader, type TodoItem } from './data'
 
 function createFormData(data: Record<string, string>): FormData {
   const formData = new FormData()
@@ -44,35 +19,26 @@ function createRequest(formData: FormData): Request {
 
 describe('loader', () => {
   beforeEach(() => {
-    localStorageMock.clear()
-    vi.clearAllMocks()
+    resetTodos()
   })
 
-  it('returns empty array when no todos in storage', () => {
-    const result = loader()
+  it('returns empty array when no todos exist', async () => {
+    const result = await loader()
     expect(result).toEqual([])
   })
 
-  it('returns todos from storage', () => {
+  it('returns todos from API', async () => {
     const todos: TodoItem[] = [{ id: 1, text: 'Test todo', completed: false }]
-    localStorageMock.setItem(STORAGE_KEY, JSON.stringify(todos))
+    resetTodos(todos)
 
-    const result = loader()
+    const result = await loader()
     expect(result).toEqual(todos)
-  })
-
-  it('returns empty array on invalid JSON', () => {
-    localStorageMock.setItem(STORAGE_KEY, 'invalid json')
-
-    const result = loader()
-    expect(result).toEqual([])
   })
 })
 
 describe('action', () => {
   beforeEach(() => {
-    localStorageMock.clear()
-    vi.clearAllMocks()
+    resetTodos()
   })
 
   describe(Intent.Create, () => {
@@ -125,7 +91,7 @@ describe('action', () => {
         { id: 1, text: 'Keep me', completed: false },
         { id: 2, text: 'Delete me', completed: true },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Delete,
@@ -139,7 +105,7 @@ describe('action', () => {
 
     it('returns current todos if id is NaN', async () => {
       const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Delete,
@@ -156,7 +122,7 @@ describe('action', () => {
       const existing: TodoItem[] = [
         { id: 1, text: 'Toggle me', completed: false },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Toggle,
@@ -171,7 +137,7 @@ describe('action', () => {
       const existing: TodoItem[] = [
         { id: 1, text: 'Toggle me', completed: true },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Toggle,
@@ -184,7 +150,7 @@ describe('action', () => {
 
     it('returns current todos if id is NaN', async () => {
       const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Toggle,
@@ -201,7 +167,7 @@ describe('action', () => {
       const existing: TodoItem[] = [
         { id: 1, text: 'Old text', completed: false },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Update,
@@ -218,7 +184,7 @@ describe('action', () => {
       const existing: TodoItem[] = [
         { id: 1, text: 'Old text', completed: false },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Update,
@@ -234,7 +200,7 @@ describe('action', () => {
       const existing: TodoItem[] = [
         { id: 1, text: 'Old text', completed: false },
       ]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Update,
@@ -248,7 +214,7 @@ describe('action', () => {
 
     it('returns current todos if id is NaN', async () => {
       const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+      resetTodos(existing)
 
       const formData = createFormData({
         intent: Intent.Update,
@@ -263,7 +229,7 @@ describe('action', () => {
 
   it('returns current todos for unknown intent', async () => {
     const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-    localStorageMock.setItem(STORAGE_KEY, JSON.stringify(existing))
+    resetTodos(existing)
 
     const formData = createFormData({
       intent: 'unknown',

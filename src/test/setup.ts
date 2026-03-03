@@ -1,12 +1,14 @@
 import '@testing-library/jest-dom'
-import { Window } from 'happy-dom'
+import { afterAll, afterEach, beforeAll } from 'vitest'
+import { resetTodos, server } from '../pages/todo/mocks/node'
 
-const window = new Window()
+beforeAll(() => server.listen())
 
-// Bun's native localStorage is often read-only or persistent.
-// We override it with Happy DOM's in-memory version for clean tests.
-Object.defineProperty(globalThis, 'localStorage', {
-  value: window.localStorage,
-  writable: true,
-  configurable: true,
+afterEach(() => {
+  server.resetHandlers()
+  resetTodos()
 })
+
+afterAll(() => server.close())
+
+export { resetTodos }
