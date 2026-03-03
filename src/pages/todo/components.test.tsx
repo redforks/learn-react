@@ -175,6 +175,31 @@ describe('Editing todos', () => {
 
     expect(screen.getByText('Original')).toBeInTheDocument()
   })
+
+  it('can enter edit mode again after saving', async () => {
+    renderTodo([{ id: 1, text: 'First edit', completed: false }])
+    await screen.findByText('First edit')
+
+    // First edit
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const editInput = screen.getByDisplayValue('First edit')
+    fireEvent.change(editInput, { target: { value: 'Saved text' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    // Wait for save to complete
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Save' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(await screen.findByText('Saved text')).toBeInTheDocument()
+
+    // Enter edit mode again
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByDisplayValue('Saved text')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+  })
 })
 
 describe('Remaining count', () => {

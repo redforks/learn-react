@@ -77,11 +77,19 @@ function AddTodoForm() {
 function TodoItemRow({ todo }: { todo: TodoItem }) {
   const [isEditing, setIsEditing] = useState(false)
   const editInputRef = useRef<HTMLInputElement>(null)
+  const processedDataRef = useRef<unknown>(null)
   const toggleFetcher = useFetcher()
   const actionFetcher = useFetcher()
   const submit = useSubmit()
 
-  if (actionFetcher.state === 'idle' && actionFetcher.data && isEditing) {
+  // Exit edit mode after successful save (only once per fetcher response)
+  if (
+    actionFetcher.state === 'idle' &&
+    actionFetcher.data &&
+    actionFetcher.data !== processedDataRef.current &&
+    isEditing
+  ) {
+    processedDataRef.current = actionFetcher.data
     setIsEditing(false)
   }
 
