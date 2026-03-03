@@ -7,15 +7,7 @@ export type Product = {
   name: string
 }
 
-const API_BASE = '/api/products'
-
-const api = ky.create({ prefixUrl: API_BASE })
-
-async function fetchProducts(
-  searchParams?: URLSearchParams,
-): Promise<Product[]> {
-  return api.get('', { searchParams }).json<Product[]>()
-}
+const api = ky.create({ prefixUrl: '/api/products' })
 
 export async function loader({
   request,
@@ -23,5 +15,5 @@ export async function loader({
   request: Request
 }): Promise<Product[]> {
   const { searchParams } = new URL(request.url)
-  return fetchProducts(searchParams)
+  return api.get('', { searchParams }).json<Product[]>()
 }

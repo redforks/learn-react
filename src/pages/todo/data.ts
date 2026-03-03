@@ -17,33 +17,10 @@ export function countRemaining(todos: TodoItem[]): number {
   return todos.filter((t) => !t.completed).length
 }
 
-const API_BASE = '/api/todos'
-
-const api = ky.create({ prefixUrl: API_BASE })
-
-async function fetchTodos(): Promise<TodoItem[]> {
-  return api.get('').json<TodoItem[]>()
-}
-
-async function createTodo(text: string): Promise<TodoItem> {
-  return api.post('', { json: { text: text.trim() } }).json<TodoItem>()
-}
-
-async function updateTodo(id: number, text: string): Promise<TodoItem> {
-  return api.put(`${id}`, { json: { text: text.trim() } }).json<TodoItem>()
-}
-
-async function toggleTodo(id: number): Promise<TodoItem> {
-  return api.patch(`${id}/toggle`).json<TodoItem>()
-}
-
-async function deleteTodo(id: number): Promise<undefined> {
-  await api.delete(`${id}`).json<{ success: boolean }>()
-  return undefined
-}
+const api = ky.create({ prefixUrl: '/api/todos' })
 
 export async function loader(): Promise<TodoItem[]> {
-  return fetchTodos()
+  return api.get('').json<TodoItem[]>()
 }
 
 export async function action({
@@ -60,17 +37,18 @@ export async function action({
       if (typeof text !== 'string') return
       const trimmed = text.trim()
       if (!trimmed) return
-      return createTodo(trimmed)
+      return api.post('', { json: { text: trimmed } }).json<TodoItem>()
     }
     case Intent.Delete: {
       const id = Number(formData.get('id'))
       if (Number.isNaN(id)) return
-      return deleteTodo(id)
+      await api.delete(`${id}`).json<{ success: boolean }>()
+      return undefined
     }
     case Intent.Toggle: {
       const id = Number(formData.get('id'))
       if (Number.isNaN(id)) return
-      return toggleTodo(id)
+      return api.patch(`${id}/toggle`).json<TodoItem>()
     }
     case Intent.Update: {
       const id = Number(formData.get('id'))
@@ -78,7 +56,7 @@ export async function action({
       if (Number.isNaN(id) || typeof text !== 'string') return
       const trimmed = text.trim()
       if (!trimmed) return
-      return updateTodo(id, trimmed)
+      return api.put(`${id}`, { json: { text: trimmed } }).json<TodoItem>()
     }
     default:
       return
