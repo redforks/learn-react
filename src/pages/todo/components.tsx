@@ -121,6 +121,11 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
       {/* Edit/Delete form */}
       <actionFetcher.Form method="post" className="contents">
         <input type="hidden" name="id" value={todo.id} />
+        <input
+          type="hidden"
+          name="intent"
+          value={isEditing ? Intent.Update : Intent.Delete}
+        />
 
         {isEditing ? (
           <div className="flex-1 flex gap-2">
@@ -137,8 +142,6 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
             />
             <button
               type="submit"
-              name="intent"
-              value={Intent.Update}
               className="text-sm text-green-600 hover:text-green-800"
             >
               Save
@@ -167,8 +170,6 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
             </button>
             <button
               type="submit"
-              name="intent"
-              value={Intent.Delete}
               className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               Delete
