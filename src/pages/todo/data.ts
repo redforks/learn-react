@@ -17,7 +17,7 @@ export async function action({
   request,
 }: {
   request: Request
-}): Promise<TodoItem | void> {
+}): Promise<TodoItem | undefined> {
   const formData = await request.formData()
   const intent = formData.get('intent')
 

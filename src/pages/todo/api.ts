@@ -39,9 +39,10 @@ export async function toggleTodo(id: number): Promise<TodoItem> {
   return handleResponse<TodoItem>(response)
 }
 
-export async function deleteTodo(id: number): Promise<void> {
+export async function deleteTodo(id: number): Promise<undefined> {
   const response = await fetch(`${API_BASE}/${id}`, {
     method: 'DELETE',
   })
   await handleResponse<{ success: boolean }>(response)
+  return undefined
 }
