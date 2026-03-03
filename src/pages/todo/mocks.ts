@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw'
-import type { TodoItem } from '../types'
+import { setupServer } from 'msw/node'
+import type { TodoItem } from './types'
 
 let todos: TodoItem[] = []
 
@@ -54,3 +55,5 @@ export const handlers = [
     return HttpResponse.json({ success: true })
   }),
 ]
+
+export const server = setupServer(...handlers)

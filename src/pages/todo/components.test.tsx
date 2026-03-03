@@ -4,7 +4,7 @@ import { createRoutesStub } from 'react-router-dom'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { Todo } from './components'
 import { action, loader } from './data'
-import { resetTodos, server } from './mocks/node'
+import { resetTodos, server } from './mocks'
 import type { TodoItem } from './types'
 
 beforeAll(() => server.listen())

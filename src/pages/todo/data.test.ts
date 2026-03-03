@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { action, countRemaining, Intent, loader, type TodoItem } from './data'
-import { resetTodos, server } from './mocks/node'
+import { resetTodos, server } from './mocks'
 
 beforeAll(() => server.listen())
 
