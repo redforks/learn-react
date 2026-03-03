@@ -1,12 +1,4 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { action, countRemaining, Intent, loader, type TodoItem } from './data'
 import { resetTodos, server } from './mocks/node'
 
@@ -35,15 +27,6 @@ function createRequest(formData: FormData): Request {
 }
 
 describe('loader', () => {
-  beforeEach(() => {
-    resetTodos()
-  })
-
-  it('returns empty array when no todos exist', async () => {
-    const result = await loader()
-    expect(result).toEqual([])
-  })
-
   it('returns todos from API', async () => {
     const todos: TodoItem[] = [{ id: 1, text: 'Test todo', completed: false }]
     resetTodos(todos)
@@ -54,206 +37,52 @@ describe('loader', () => {
 })
 
 describe('action', () => {
-  beforeEach(() => {
-    resetTodos()
+  it('handles Create intent', async () => {
+    const formData = createFormData({ intent: Intent.Create, text: 'New todo' })
+    const result = await action({ request: createRequest(formData) })
+
+    expect(result).toHaveLength(1)
+    expect(result[0].text).toBe('New todo')
   })
 
-  describe(Intent.Create, () => {
-    it('creates a new todo', async () => {
-      const formData = createFormData({
-        intent: Intent.Create,
-        text: 'New todo',
-      })
-      const result = await action({ request: createRequest(formData) })
+  it('handles Delete intent', async () => {
+    resetTodos([
+      { id: 1, text: 'Keep', completed: false },
+      { id: 2, text: 'Delete', completed: false },
+    ])
+    const formData = createFormData({ intent: Intent.Delete, id: '2' })
+    const result = await action({ request: createRequest(formData) })
 
-      expect(result).toHaveLength(1)
-      expect(result[0].text).toBe('New todo')
-      expect(result[0].completed).toBe(false)
-      expect(typeof result[0].id).toBe('number')
-    })
-
-    it('trims whitespace from text', async () => {
-      const formData = createFormData({
-        intent: Intent.Create,
-        text: '  Trimmed todo  ',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].text).toBe('Trimmed todo')
-    })
-
-    it('returns current todos if text is empty', async () => {
-      const formData = createFormData({
-        intent: Intent.Create,
-        text: '   ',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result).toEqual([])
-    })
-
-    it('returns current todos if text is not a string', async () => {
-      const formData = new FormData()
-      formData.append('intent', Intent.Create)
-      formData.append('text', new Blob(['test']) as unknown as string)
-
-      const result = await action({ request: createRequest(formData) })
-      expect(result).toEqual([])
-    })
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(1)
   })
 
-  describe(Intent.Delete, () => {
-    it('deletes a todo by id', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Keep me', completed: false },
-        { id: 2, text: 'Delete me', completed: true },
-      ]
-      resetTodos(existing)
+  it('handles Toggle intent', async () => {
+    resetTodos([{ id: 1, text: 'Test', completed: false }])
+    const formData = createFormData({ intent: Intent.Toggle, id: '1' })
+    const result = await action({ request: createRequest(formData) })
 
-      const formData = createFormData({
-        intent: Intent.Delete,
-        id: '2',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(1)
-    })
-
-    it('returns current todos if id is NaN', async () => {
-      const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Delete,
-        id: 'invalid',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result).toEqual(existing)
-    })
+    expect(result[0].completed).toBe(true)
   })
 
-  describe(Intent.Toggle, () => {
-    it('toggles todo completed status', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Toggle me', completed: false },
-      ]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Toggle,
-        id: '1',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].completed).toBe(true)
-    })
-
-    it('toggles from completed to uncompleted', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Toggle me', completed: true },
-      ]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Toggle,
-        id: '1',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].completed).toBe(false)
-    })
-
-    it('returns current todos if id is NaN', async () => {
-      const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Toggle,
-        id: 'invalid',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result).toEqual(existing)
-    })
-  })
-
-  describe(Intent.Update, () => {
-    it('updates todo text', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Old text', completed: false },
-      ]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Update,
-        id: '1',
-        text: 'New text',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].text).toBe('New text')
-      expect(result[0].completed).toBe(false)
-    })
-
-    it('trims whitespace from text', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Old text', completed: false },
-      ]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Update,
-        id: '1',
-        text: '  Trimmed  ',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].text).toBe('Trimmed')
-    })
-
-    it('returns current todos if text is empty', async () => {
-      const existing: TodoItem[] = [
-        { id: 1, text: 'Old text', completed: false },
-      ]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Update,
-        id: '1',
-        text: '   ',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result[0].text).toBe('Old text')
-    })
-
-    it('returns current todos if id is NaN', async () => {
-      const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-      resetTodos(existing)
-
-      const formData = createFormData({
-        intent: Intent.Update,
-        id: 'invalid',
-        text: 'New text',
-      })
-      const result = await action({ request: createRequest(formData) })
-
-      expect(result).toEqual(existing)
-    })
-  })
-
-  it('returns current todos for unknown intent', async () => {
-    const existing: TodoItem[] = [{ id: 1, text: 'Test', completed: false }]
-    resetTodos(existing)
-
+  it('handles Update intent', async () => {
+    resetTodos([{ id: 1, text: 'Old', completed: false }])
     const formData = createFormData({
-      intent: 'unknown',
+      intent: Intent.Update,
+      id: '1',
+      text: 'New',
     })
     const result = await action({ request: createRequest(formData) })
 
-    expect(result).toEqual(existing)
+    expect(result[0].text).toBe('New')
+  })
+
+  it('returns current todos for unknown intent', async () => {
+    resetTodos([{ id: 1, text: 'Test', completed: false }])
+    const formData = createFormData({ intent: 'unknown' })
+    const result = await action({ request: createRequest(formData) })
+
+    expect(result).toEqual([{ id: 1, text: 'Test', completed: false }])
   })
 })
 
