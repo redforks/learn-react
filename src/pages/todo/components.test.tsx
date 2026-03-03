@@ -201,6 +201,32 @@ describe('Editing todos', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
   })
+
+  it('cancels edit mode when clicking checkbox', async () => {
+    renderTodo([{ id: 1, text: 'Edit and toggle', completed: false }])
+    await screen.findByText('Edit and toggle')
+
+    // Enter edit mode
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const editInput = screen.getByDisplayValue('Edit and toggle')
+    fireEvent.change(editInput, { target: { value: 'Modified text' } })
+
+    // Click checkbox while in edit mode
+    fireEvent.click(screen.getByRole('checkbox'))
+
+    // Should cancel edit mode (original text shown, no edit input)
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Save' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(screen.getByText('Edit and toggle')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Modified text')).not.toBeInTheDocument()
+
+    // Should toggle completed state
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    await waitFor(() => expect(checkbox).toBeChecked())
+  })
 })
 
 describe('Remaining count', () => {

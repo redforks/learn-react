@@ -110,7 +110,10 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
         <input
           type="checkbox"
           checked={todo.completed}
-          onChange={(e) => submit(e.target.form)}
+          onChange={(e) => {
+            if (isEditing) cancelEditing()
+            submit(e.target.form)
+          }}
           className="size-4 accent-blue-500"
         />
       </toggleFetcher.Form>
