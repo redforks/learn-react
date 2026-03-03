@@ -4,13 +4,7 @@ import {
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
-
-export type Product = {
-  category: string
-  price: string
-  stocked: boolean
-  name: string
-}
+import type { Product } from './types'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (

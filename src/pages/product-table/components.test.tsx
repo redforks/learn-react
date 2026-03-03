@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createRoutesStub, useLocation } from 'react-router-dom'
+import { afterAll, afterEach, beforeAll } from 'vitest'
 import {
   FilterableProductTable,
   ProductCategoryRow,
@@ -8,6 +9,13 @@ import {
   SearchBar,
 } from './components'
 import { loader } from './data'
+import { server } from './mocks'
+
+beforeAll(() => server.listen())
+
+afterEach(() => server.resetHandlers())
+
+afterAll(() => server.close())
 
 describe('ProductCategoryRow', () => {
   it('renders category name', () => {
