@@ -1,5 +1,5 @@
 import { defineMock, defineMockData } from 'vite-plugin-mock-dev-server'
-import type { Product } from '../src/pages/product-table/types'
+import type { Product } from '../src/pages/product-table/data'
 
 const PRODUCTS: Product[] = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },

@@ -1,6 +1,6 @@
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
-import type { Product } from './types'
+import type { Product } from './data'
 
 const PRODUCTS: Product[] = [
   { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },

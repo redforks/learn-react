@@ -4,7 +4,7 @@ import {
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
-import type { Product } from './types'
+import type { Product } from './data'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
