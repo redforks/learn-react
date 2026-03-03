@@ -12,7 +12,7 @@ This is a React application built with modern tooling.
 
 ## Common Commands
 
-**IMPORTANT: Use `just` commands instead of `bun run` or `bunx`.**
+**IMPORTANT: Use `just` commands instead of `pnpm run`.**
 
 ```bash
 # Start development server
@@ -44,7 +44,6 @@ justfile           # Task runner commands
 
 ## Notes
 
-- **Use `just` for running commands** - Do NOT use `bun run` or `bunx`, use `just <command>` instead
-- Use `bun` only for package management (installing dependencies: `bun install`, adding packages: `bun add`)
+- Use pnpm
 - Tailwind CSS v4 is used with the `@tailwindcss/postcss` plugin
 - Vitest is configured with happy-dom for component testing

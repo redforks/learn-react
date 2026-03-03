@@ -1,3 +1,5 @@
+import ky from 'ky'
+
 export type Product = {
   category: string
   price: string
@@ -7,23 +9,12 @@ export type Product = {
 
 const API_BASE = '/api/products'
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`)
-  }
-  return response.json()
-}
+const api = ky.create({ prefixUrl: API_BASE })
 
 export async function fetchProducts(
   searchParams?: URLSearchParams,
 ): Promise<Product[]> {
-  const url = new URL(API_BASE, window.location.origin)
-  if (searchParams) {
-    url.search = searchParams.toString()
-  }
-
-  const response = await fetch(url.toString())
-  return handleResponse<Product[]>(response)
+  return api.get('', { searchParams }).json<Product[]>()
 }
 
 export async function loader({

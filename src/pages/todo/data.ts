@@ -1,3 +1,5 @@
+import ky from 'ky'
+
 export enum Intent {
   Create = 'create',
   Delete = 'delete',
@@ -17,48 +19,26 @@ export function countRemaining(todos: TodoItem[]): number {
 
 const API_BASE = '/api/todos'
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`)
-  }
-  return response.json()
-}
+const api = ky.create({ prefixUrl: API_BASE })
 
 export async function fetchTodos(): Promise<TodoItem[]> {
-  const response = await fetch(API_BASE)
-  return handleResponse<TodoItem[]>(response)
+  return api.get('').json<TodoItem[]>()
 }
 
 export async function createTodo(text: string): Promise<TodoItem> {
-  const response = await fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: text.trim() }),
-  })
-  return handleResponse<TodoItem>(response)
+  return api.post('', { json: { text: text.trim() } }).json<TodoItem>()
 }
 
 export async function updateTodo(id: number, text: string): Promise<TodoItem> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: text.trim() }),
-  })
-  return handleResponse<TodoItem>(response)
+  return api.put(`${id}`, { json: { text: text.trim() } }).json<TodoItem>()
 }
 
 export async function toggleTodo(id: number): Promise<TodoItem> {
-  const response = await fetch(`${API_BASE}/${id}/toggle`, {
-    method: 'PATCH',
-  })
-  return handleResponse<TodoItem>(response)
+  return api.patch(`${id}/toggle`).json<TodoItem>()
 }
 
 export async function deleteTodo(id: number): Promise<undefined> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: 'DELETE',
-  })
-  await handleResponse<{ success: boolean }>(response)
+  await api.delete(`${id}`).json<{ success: boolean }>()
   return undefined
 }
 
