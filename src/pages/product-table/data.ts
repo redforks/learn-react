@@ -11,7 +11,7 @@ const API_BASE = '/api/products'
 
 const api = ky.create({ prefixUrl: API_BASE })
 
-export async function fetchProducts(
+async function fetchProducts(
   searchParams?: URLSearchParams,
 ): Promise<Product[]> {
   return api.get('', { searchParams }).json<Product[]>()

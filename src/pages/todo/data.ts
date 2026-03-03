@@ -21,23 +21,23 @@ const API_BASE = '/api/todos'
 
 const api = ky.create({ prefixUrl: API_BASE })
 
-export async function fetchTodos(): Promise<TodoItem[]> {
+async function fetchTodos(): Promise<TodoItem[]> {
   return api.get('').json<TodoItem[]>()
 }
 
-export async function createTodo(text: string): Promise<TodoItem> {
+async function createTodo(text: string): Promise<TodoItem> {
   return api.post('', { json: { text: text.trim() } }).json<TodoItem>()
 }
 
-export async function updateTodo(id: number, text: string): Promise<TodoItem> {
+async function updateTodo(id: number, text: string): Promise<TodoItem> {
   return api.put(`${id}`, { json: { text: text.trim() } }).json<TodoItem>()
 }
 
-export async function toggleTodo(id: number): Promise<TodoItem> {
+async function toggleTodo(id: number): Promise<TodoItem> {
   return api.patch(`${id}/toggle`).json<TodoItem>()
 }
 
-export async function deleteTodo(id: number): Promise<undefined> {
+async function deleteTodo(id: number): Promise<undefined> {
   await api.delete(`${id}`).json<{ success: boolean }>()
   return undefined
 }
