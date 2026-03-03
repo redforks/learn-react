@@ -1,5 +1,10 @@
-import { useState } from 'react'
-import { calculateWinner, Player } from './data'
+import {
+  calculateWinner,
+  type Player,
+  useCurrentPlayer,
+  useCurrentSquares,
+  useGameStore,
+} from './data'
 
 type SquareProps = {
   value: Player | null
@@ -61,29 +66,17 @@ export function Board({ squares, currentPlayer, onPlay }: BoardProps) {
   )
 }
 
-type HistoryEntry = {
-  squares: Array<Player | null>
-}
-
 export function Game() {
-  const [history, setHistory] = useState<HistoryEntry[]>([
-    { squares: Array(9).fill(null) },
-  ])
-  const [currentMove, setCurrentMove] = useState(0)
+  const history = useGameStore((state) => state.history)
+  const currentMove = useGameStore((state) => state.currentMove)
+  const play = useGameStore((state) => state.play)
+  const jumpTo = useGameStore((state) => state.jumpTo)
 
-  const currentPlayer: Player = currentMove % 2 === 0 ? Player.X : Player.O
-  const currentSquares = history[currentMove].squares
+  const currentPlayer = useCurrentPlayer()
+  const currentSquares = useCurrentSquares()
 
   function handlePlay(nextSquares: Array<Player | null>) {
-    const nextHistory: HistoryEntry[] = history
-      .slice(0, currentMove + 1)
-      .concat([{ squares: nextSquares }])
-    setHistory(nextHistory)
-    setCurrentMove(nextHistory.length - 1)
-  }
-
-  function jumpTo(nextMove: number) {
-    setCurrentMove(nextMove)
+    play(nextSquares)
   }
 
   const moves = history.map((_, move) => {

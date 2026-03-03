@@ -1,5 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach } from 'vitest'
 import { Game } from './components'
+import { useGameStore } from './data'
+
+afterEach(() => {
+  act(() => {
+    useGameStore.getState().reset()
+  })
+})
 
 describe('Game', () => {
   it('renders the board', () => {
