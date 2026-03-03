@@ -1,6 +1,23 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { resetTodos } from '../../test/setup'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest'
 import { action, countRemaining, Intent, loader, type TodoItem } from './data'
+import { resetTodos, server } from './mocks/node'
+
+beforeAll(() => server.listen())
+
+afterEach(() => {
+  server.resetHandlers()
+  resetTodos()
+})
+
+afterAll(() => server.close())
 
 function createFormData(data: Record<string, string>): FormData {
   const formData = new FormData()

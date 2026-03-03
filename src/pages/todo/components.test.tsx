@@ -1,10 +1,20 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router-dom'
-import { resetTodos } from '../../test/setup'
+import { afterAll, afterEach, beforeAll } from 'vitest'
 import { Todo } from './components'
 import { action, loader } from './data'
+import { resetTodos, server } from './mocks/node'
 import type { TodoItem } from './types'
+
+beforeAll(() => server.listen())
+
+afterEach(() => {
+  server.resetHandlers()
+  resetTodos()
+})
+
+afterAll(() => server.close())
 
 function renderTodo(initialTodos: TodoItem[] = []) {
   resetTodos(initialTodos)
