@@ -1,19 +1,31 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createRoutesStub, useLocation } from 'react-router-dom'
-import { afterAll, afterEach, beforeAll } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 import {
   FilterableProductTable,
   ProductCategoryRow,
+  ProductForm,
   ProductRow,
   ProductTable,
   SearchBar,
 } from './components'
 import { loader } from './data'
-import { server } from './mocks'
+import { resetProducts, server } from './mocks'
 
 beforeAll(() => server.listen())
 
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  resetProducts()
+})
 
 afterAll(() => server.close())
 
@@ -29,7 +41,7 @@ describe('ProductCategoryRow', () => {
     expect(screen.getByText('Fruits')).toBeInTheDocument()
   })
 
-  it('renders as table header with colSpan=2', () => {
+  it('renders as table header with colSpan=3', () => {
     const { container } = render(
       <table>
         <tbody>
@@ -38,22 +50,28 @@ describe('ProductCategoryRow', () => {
       </table>,
     )
     const th = container.querySelector('th')
-    expect(th).toHaveAttribute('colSpan', '2')
+    expect(th).toHaveAttribute('colSpan', '3')
   })
 })
 
 describe('ProductRow', () => {
+  const mockProduct = {
+    id: '1',
+    category: 'Fruits',
+    price: '$1',
+    stocked: true,
+    name: 'Apple',
+  }
+
   it('renders product name and price', () => {
-    const product = {
-      category: 'Fruits',
-      price: '$1',
-      stocked: true,
-      name: 'Apple',
-    }
     render(
       <table>
         <tbody>
-          <ProductRow product={product} />
+          <ProductRow
+            product={mockProduct}
+            onEdit={() => {}}
+            onDelete={() => {}}
+          />
         </tbody>
       </table>,
     )
@@ -63,16 +81,14 @@ describe('ProductRow', () => {
   })
 
   it('renders stocked product in normal text', () => {
-    const product = {
-      category: 'Fruits',
-      price: '$1',
-      stocked: true,
-      name: 'Apple',
-    }
     const { container } = render(
       <table>
         <tbody>
-          <ProductRow product={product} />
+          <ProductRow
+            product={mockProduct}
+            onEdit={() => {}}
+            onDelete={() => {}}
+          />
         </tbody>
       </table>,
     )
@@ -83,6 +99,7 @@ describe('ProductRow', () => {
 
   it('renders out-of-stock product in red text', () => {
     const product = {
+      id: '3',
       category: 'Fruits',
       price: '$2',
       stocked: false,
@@ -91,7 +108,7 @@ describe('ProductRow', () => {
     const { container } = render(
       <table>
         <tbody>
-          <ProductRow product={product} />
+          <ProductRow product={product} onEdit={() => {}} onDelete={() => {}} />
         </tbody>
       </table>,
     )
@@ -99,23 +116,101 @@ describe('ProductRow', () => {
     const nameSpan = container.querySelector('span')
     expect(nameSpan).toHaveClass('text-red-500')
   })
+
+  it('renders Edit and Delete buttons', () => {
+    render(
+      <table>
+        <tbody>
+          <ProductRow
+            product={mockProduct}
+            onEdit={() => {}}
+            onDelete={() => {}}
+          />
+        </tbody>
+      </table>,
+    )
+
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
+  it('calls onEdit when Edit button is clicked', () => {
+    const onEdit = vi.fn()
+    render(
+      <table>
+        <tbody>
+          <ProductRow
+            product={mockProduct}
+            onEdit={onEdit}
+            onDelete={() => {}}
+          />
+        </tbody>
+      </table>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(onEdit).toHaveBeenCalledWith(mockProduct)
+  })
+
+  it('calls onDelete when Delete button is clicked', () => {
+    const onDelete = vi.fn()
+    render(
+      <table>
+        <tbody>
+          <ProductRow
+            product={mockProduct}
+            onEdit={() => {}}
+            onDelete={onDelete}
+          />
+        </tbody>
+      </table>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    expect(onDelete).toHaveBeenCalledWith('1')
+  })
 })
 
 describe('ProductTable', () => {
-  it('renders table with name and price headers', () => {
-    render(<ProductTable products={[]} />)
+  it('renders table with name, price and actions headers', () => {
+    render(<ProductTable products={[]} onEdit={() => {}} onDelete={() => {}} />)
 
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
+    expect(screen.getByText('Actions')).toBeInTheDocument()
   })
 
   it('renders products grouped by category', () => {
     const products = [
-      { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
-      { category: 'Fruits', price: '$2', stocked: false, name: 'Banana' },
-      { category: 'Vegetables', price: '$1', stocked: true, name: 'Carrot' },
+      {
+        id: '1',
+        category: 'Fruits',
+        price: '$1',
+        stocked: true,
+        name: 'Apple',
+      },
+      {
+        id: '2',
+        category: 'Fruits',
+        price: '$2',
+        stocked: false,
+        name: 'Banana',
+      },
+      {
+        id: '3',
+        category: 'Vegetables',
+        price: '$1',
+        stocked: true,
+        name: 'Carrot',
+      },
     ]
-    render(<ProductTable products={products} />)
+    render(
+      <ProductTable
+        products={products}
+        onEdit={() => {}}
+        onDelete={() => {}}
+      />,
+    )
 
     expect(screen.getByText('Fruits')).toBeInTheDocument()
     expect(screen.getByText('Vegetables')).toBeInTheDocument()
@@ -125,7 +220,7 @@ describe('ProductTable', () => {
   })
 
   it('renders empty table when no products', () => {
-    render(<ProductTable products={[]} />)
+    render(<ProductTable products={[]} onEdit={() => {}} onDelete={() => {}} />)
 
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
@@ -134,12 +229,30 @@ describe('ProductTable', () => {
 
   it('renders only category header once per category', () => {
     const products = [
-      { category: 'Fruits', price: '$1', stocked: true, name: 'Apple' },
-      { category: 'Fruits', price: '$2', stocked: true, name: 'Orange' },
+      {
+        id: '1',
+        category: 'Fruits',
+        price: '$1',
+        stocked: true,
+        name: 'Apple',
+      },
+      {
+        id: '2',
+        category: 'Fruits',
+        price: '$2',
+        stocked: true,
+        name: 'Orange',
+      },
     ]
-    const { container } = render(<ProductTable products={products} />)
+    const { container } = render(
+      <ProductTable
+        products={products}
+        onEdit={() => {}}
+        onDelete={() => {}}
+      />,
+    )
 
-    const categoryHeaders = container.querySelectorAll('th[colSpan="2"]')
+    const categoryHeaders = container.querySelectorAll('th[colSpan="3"]')
     expect(categoryHeaders).toHaveLength(1)
   })
 })
@@ -246,6 +359,64 @@ describe('SearchBar', () => {
   })
 })
 
+describe('ProductForm', () => {
+  it('renders form with empty fields for new product', () => {
+    render(<ProductForm product={null} onSave={() => {}} onCancel={() => {}} />)
+
+    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
+  })
+
+  it('renders form with product data for editing', () => {
+    const product = {
+      id: '1',
+      category: 'Fruits',
+      price: '$1',
+      stocked: true,
+      name: 'Apple',
+    }
+    render(
+      <ProductForm product={product} onSave={() => {}} onCancel={() => {}} />,
+    )
+
+    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
+  })
+
+  it('calls onCancel when Cancel button is clicked', () => {
+    const onCancel = vi.fn()
+    render(<ProductForm product={null} onSave={() => {}} onCancel={onCancel} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(onCancel).toHaveBeenCalled()
+  })
+
+  it('calls onSave with form data when submitted', () => {
+    const onSave = vi.fn()
+    const { container } = render(
+      <ProductForm product={null} onSave={onSave} onCancel={() => {}} />,
+    )
+
+    const inputs = container.querySelectorAll('input[type="text"]')
+    const nameInput = inputs[0]
+    const categoryInput = inputs[1]
+    const priceInput = inputs[2]
+
+    fireEvent.change(nameInput, { target: { value: 'Mango' } })
+    fireEvent.change(categoryInput, { target: { value: 'Fruits' } })
+    fireEvent.change(priceInput, { target: { value: '$3' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    expect(onSave).toHaveBeenCalledWith({
+      name: 'Mango',
+      category: 'Fruits',
+      price: '$3',
+      stocked: false,
+    })
+  })
+})
+
 describe('FilterableProductTable', () => {
   function createStub() {
     return createRoutesStub([
@@ -268,5 +439,28 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Pumpkin')).toBeInTheDocument()
     expect(screen.getByText('Peas')).toBeInTheDocument()
+  })
+
+  it('renders Add Product button', async () => {
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    expect(await screen.findByText('Apple')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Add Product' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows form when Add Product button is clicked', async () => {
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    await screen.findByText('Apple')
+    fireEvent.click(screen.getByRole('button', { name: 'Add Product' }))
+
+    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Add Product' }),
+    ).not.toBeInTheDocument()
   })
 })
