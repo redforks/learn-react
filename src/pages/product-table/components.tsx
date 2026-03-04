@@ -39,7 +39,7 @@ export function ProductRow({
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50">
       <td className="px-4 py-2 text-sm text-gray-900">{name}</td>
-      <td className="px-4 py-2 text-sm text-gray-600">{product.price}</td>
+      <td className="px-4 py-2 text-sm text-gray-600">${product.price}</td>
       <td className="px-4 py-2 text-sm">
         <div className="flex gap-2">
           <button
@@ -142,7 +142,7 @@ export function SearchBar() {
 
 const emptyProduct: ProductInput = {
   category: '',
-  price: '$',
+  price: '',
   stocked: false,
   name: '',
 }
@@ -160,10 +160,7 @@ export function ProductForm({
   const categoryId = useId()
   const priceId = useId()
   const fetcher = useFetcher()
-  const {
-    register,
-    reset,
-  } = useForm<ProductInput>({
+  const { register, reset } = useForm<ProductInput>({
     defaultValues: product ?? emptyProduct,
   })
 
@@ -227,7 +224,7 @@ export function ProductForm({
             id={priceId}
             type="text"
             required
-            placeholder="$1"
+            placeholder="1.00"
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
             {...register('price')}
           />

@@ -49,7 +49,7 @@ describe('ProductRow', () => {
   const mockProduct = {
     id: '1',
     category: 'Fruits',
-    price: '$1',
+    price: '1',
     stocked: true,
     name: 'Apple',
   }
@@ -83,7 +83,7 @@ describe('ProductRow', () => {
     const product = {
       id: '3',
       category: 'Fruits',
-      price: '$2',
+      price: '2',
       stocked: false,
       name: 'Passionfruit',
     }
@@ -138,21 +138,21 @@ describe('ProductTable', () => {
       {
         id: '1',
         category: 'Fruits',
-        price: '$1',
+        price: '1',
         stocked: true,
         name: 'Apple',
       },
       {
         id: '2',
         category: 'Fruits',
-        price: '$2',
+        price: '2',
         stocked: false,
         name: 'Banana',
       },
       {
         id: '3',
         category: 'Vegetables',
-        price: '$1',
+        price: '1',
         stocked: true,
         name: 'Carrot',
       },
@@ -179,14 +179,14 @@ describe('ProductTable', () => {
       {
         id: '1',
         category: 'Fruits',
-        price: '$1',
+        price: '1',
         stocked: true,
         name: 'Apple',
       },
       {
         id: '2',
         category: 'Fruits',
-        price: '$2',
+        price: '2',
         stocked: true,
         name: 'Orange',
       },
@@ -332,7 +332,7 @@ describe('ProductForm', () => {
     const product = {
       id: '1',
       category: 'Fruits',
-      price: '$1',
+      price: '1',
       stocked: true,
       name: 'Apple',
     }
@@ -479,7 +479,7 @@ describe('FilterableProductTable', () => {
       target: { value: 'Fruits' },
     })
     fireEvent.change(screen.getByLabelText('Price'), {
-      target: { value: '$3' },
+      target: { value: '3' },
     })
 
     // Submit the form
@@ -552,7 +552,7 @@ describe('FilterableProductTable with userEvent', () => {
     // Fill in the form using userEvent.type for text input
     await user.type(screen.getByLabelText('Name'), 'Mango')
     await user.type(screen.getByLabelText('Category'), 'Fruits')
-    await user.type(screen.getByLabelText('Price'), '$3')
+    await user.type(screen.getByLabelText('Price'), '3')
 
     // Toggle checkbox using userEvent.click
     const inStockCheckbox = screen.getByRole('checkbox', { name: 'In Stock' })

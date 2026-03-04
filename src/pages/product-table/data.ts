@@ -1,4 +1,5 @@
 import ky from 'ky'
+import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
 export enum Intent {
@@ -10,7 +11,10 @@ export enum Intent {
 const baseProductSchema = {
   name: zfd.text(),
   category: zfd.text(),
-  price: zfd.text(),
+  price: zfd.text(
+    z.string().
+      regex(/^\d+(\.\d+)?$/, 'Price must be a valid decimal'),
+  ),
   stocked: zfd.checkbox(),
 }
 
