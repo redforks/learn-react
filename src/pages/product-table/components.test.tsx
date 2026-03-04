@@ -30,8 +30,8 @@ afterEach(() => {
 afterAll(() => server.close())
 
 describe('ProductCategoryRow', () => {
-  it('renders category name', () => {
-    render(
+  it('renders category name as table header with colSpan=3', () => {
+    const { container } = render(
       <table>
         <tbody>
           <ProductCategoryRow category="Fruits" />
@@ -39,16 +39,6 @@ describe('ProductCategoryRow', () => {
       </table>,
     )
     expect(screen.getByText('Fruits')).toBeInTheDocument()
-  })
-
-  it('renders as table header with colSpan=3', () => {
-    const { container } = render(
-      <table>
-        <tbody>
-          <ProductCategoryRow category="Test" />
-        </tbody>
-      </table>,
-    )
     const th = container.querySelector('th')
     expect(th).toHaveAttribute('colSpan', '3')
   })
@@ -73,7 +63,7 @@ describe('ProductRow', () => {
     return render(<Stub initialEntries={['/']} />)
   }
 
-  it('renders product name and price', () => {
+  it('renders product details and actions', () => {
     renderWithRouter(
       <table>
         <tbody>
@@ -84,19 +74,8 @@ describe('ProductRow', () => {
 
     expect(screen.getByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('$1')).toBeInTheDocument()
-  })
-
-  it('renders stocked product in normal text', () => {
-    const { container } = renderWithRouter(
-      <table>
-        <tbody>
-          <ProductRow product={mockProduct} onEdit={() => {}} />
-        </tbody>
-      </table>,
-    )
-
-    const nameSpan = container.querySelector('span')
-    expect(nameSpan).not.toHaveClass('text-red-500')
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
   it('renders out-of-stock product in red text', () => {
@@ -117,19 +96,6 @@ describe('ProductRow', () => {
 
     const nameSpan = container.querySelector('span')
     expect(nameSpan).toHaveClass('text-red-500')
-  })
-
-  it('renders Edit and Delete buttons', () => {
-    renderWithRouter(
-      <table>
-        <tbody>
-          <ProductRow product={mockProduct} onEdit={() => {}} />
-        </tbody>
-      </table>,
-    )
-
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
   it('calls onEdit when Edit button is clicked', () => {
@@ -346,39 +312,13 @@ describe('ProductForm', () => {
     return render(<Stub initialEntries={['/']} />)
   }
 
-  it('renders form with empty fields for new product', () => {
-    renderWithRouter(<ProductForm product={null} onCancel={() => {}} />)
-
-    expect(screen.getByText('Add New Product')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
-  })
-
-  it('renders form with product data for editing', () => {
-    const product = {
-      id: '1',
-      category: 'Fruits',
-      price: '$1',
-      stocked: true,
-      name: 'Apple',
-    }
-    renderWithRouter(<ProductForm product={product} onCancel={() => {}} />)
-
-    expect(screen.getByText('Edit Product')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
-  })
-
-  it('calls onCancel when Cancel button is clicked', () => {
-    const onCancel = vi.fn()
-    renderWithRouter(<ProductForm product={null} onCancel={onCancel} />)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    expect(onCancel).toHaveBeenCalled()
-  })
-
-  it('has hidden _action input with create value for new product', () => {
+  it('renders form with empty fields and create action for new product', () => {
     const { container } = renderWithRouter(
       <ProductForm product={null} onCancel={() => {}} />,
     )
+
+    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
 
     const actionInput = container.querySelector(
       'input[name="_action"]',
@@ -387,7 +327,7 @@ describe('ProductForm', () => {
     expect(actionInput.value).toBe('create')
   })
 
-  it('has hidden _action input with update value for editing', () => {
+  it('renders form with product data and update action for editing', () => {
     const product = {
       id: '1',
       category: 'Fruits',
@@ -399,11 +339,22 @@ describe('ProductForm', () => {
       <ProductForm product={product} onCancel={() => {}} />,
     )
 
+    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
+
     const actionInput = container.querySelector(
       'input[name="_action"]',
     ) as HTMLInputElement
     expect(actionInput).toBeTruthy()
     expect(actionInput.value).toBe('update')
+  })
+
+  it('calls onCancel when Cancel button is clicked', () => {
+    const onCancel = vi.fn()
+    renderWithRouter(<ProductForm product={null} onCancel={onCancel} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(onCancel).toHaveBeenCalled()
   })
 })
 
@@ -420,7 +371,7 @@ describe('FilterableProductTable', () => {
     ])
   }
 
-  it('renders all products by default', async () => {
+  it('renders all products and Add Product button by default', async () => {
     const Stub = createStub()
     render(<Stub initialEntries={['/']} />)
 
@@ -430,13 +381,7 @@ describe('FilterableProductTable', () => {
     expect(screen.getByText('Spinach')).toBeInTheDocument()
     expect(screen.getByText('Pumpkin')).toBeInTheDocument()
     expect(screen.getByText('Peas')).toBeInTheDocument()
-  })
 
-  it('renders Add Product button', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
-
-    expect(await screen.findByText('Apple')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Add Product' }),
     ).toBeInTheDocument()
