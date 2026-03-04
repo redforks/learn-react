@@ -68,8 +68,9 @@ describe('action', () => {
       }),
     })
 
-    expect(response.status).toBe(302)
-    expect(response.headers.get('Location')).toBe('.')
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toEqual({ success: true })
 
     // Verify product was created
     const products = await loader({ request: new Request('http://localhost/') })
@@ -95,8 +96,9 @@ describe('action', () => {
       }),
     })
 
-    expect(response.status).toBe(302)
-    expect(response.headers.get('Location')).toBe('.')
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toEqual({ success: true })
 
     // Verify product was updated
     const products = await loader({ request: new Request('http://localhost/') })
@@ -118,8 +120,9 @@ describe('action', () => {
       }),
     })
 
-    expect(response.status).toBe(302)
-    expect(response.headers.get('Location')).toBe('.')
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toEqual({ success: true })
 
     // Verify product was deleted
     const products = await loader({ request: new Request('http://localhost/') })
@@ -127,7 +130,7 @@ describe('action', () => {
     expect(products.some((p) => p.id === '1')).toBe(false)
   })
 
-  it('returns redirect for unknown action', async () => {
+  it('returns success for unknown action', async () => {
     const formData = new FormData()
     formData.set('_action', 'unknown')
 
@@ -138,7 +141,8 @@ describe('action', () => {
       }),
     })
 
-    expect(response.status).toBe(302)
-    expect(response.headers.get('Location')).toBe('.')
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toEqual({ success: true })
   })
 })

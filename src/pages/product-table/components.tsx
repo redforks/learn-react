@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import {
   Form,
   useFetcher,
@@ -149,9 +149,11 @@ const emptyProduct: ProductInput = {
 export function ProductForm({
   product,
   onCancel,
+  onSuccess,
 }: {
   product: Product | null
   onCancel: () => void
+  onSuccess?: () => void
 }) {
   const nameId = useId()
   const categoryId = useId()
@@ -161,6 +163,12 @@ export function ProductForm({
     product ?? emptyProduct,
   )
   const isSubmitting = fetcher.state !== 'idle'
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      onSuccess?.()
+    }
+  }, [fetcher.data, fetcher.state, onSuccess])
 
   return (
     <fetcher.Form
@@ -232,7 +240,6 @@ export function ProductForm({
             <input
               type="checkbox"
               name="stocked"
-              value="true"
               checked={formData.stocked}
               onChange={(e) =>
                 setFormData({ ...formData, stocked: e.target.checked })
@@ -293,7 +300,11 @@ export function FilterableProductTable() {
         )}
       </div>
       {showForm && (
-        <ProductForm product={editingProduct} onCancel={handleCancel} />
+        <ProductForm
+          product={editingProduct}
+          onCancel={handleCancel}
+          onSuccess={handleCancel}
+        />
       )}
       <ProductTable products={products} onEdit={handleEdit} />
     </div>

@@ -59,5 +59,5 @@ export async function action({
     await api.delete(id)
   }
 
-  return new Response(null, { status: 302, headers: { Location: '.' } })
+  return Response.json({ success: true })
 }
