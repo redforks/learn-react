@@ -1,6 +1,12 @@
 import ky from 'ky'
 import { zfd } from 'zod-form-data'
 
+export enum Intent {
+  Create = 'create',
+  Update = 'update',
+  Delete = 'delete',
+}
+
 const baseProductSchema = {
   name: zfd.text(),
   category: zfd.text(),
@@ -48,13 +54,13 @@ export async function action({
   const formData = await request.formData()
   const intent = formData.get('_action')
 
-  if (intent === 'create') {
+  if (intent === Intent.Create) {
     const product = createSchema.parse(formData)
     await api.post('', { json: product })
-  } else if (intent === 'update') {
+  } else if (intent === Intent.Update) {
     const product = updateSchema.parse(formData)
     await api.put(product.id, { json: product })
-  } else if (intent === 'delete') {
+  } else if (intent === Intent.Delete) {
     const { id } = deleteSchema.parse(formData)
     await api.delete(id)
   }

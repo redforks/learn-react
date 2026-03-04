@@ -6,7 +6,7 @@ import {
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
-import type { Product, ProductInput } from './data'
+import { Intent, type Product, type ProductInput } from './data'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
@@ -49,7 +49,7 @@ export function ProductRow({
             Edit
           </button>
           <fetcher.Form method="post" className="inline">
-            <input type="hidden" name="_action" value="delete" />
+            <input type="hidden" name="_action" value={Intent.Delete} />
             <input type="hidden" name="id" value={product.id} />
             <button
               type="submit"
@@ -181,7 +181,7 @@ export function ProductForm({
       <input
         type="hidden"
         name="_action"
-        value={product ? 'update' : 'create'}
+        value={product ? Intent.Update : Intent.Create}
       />
       {product && <input type="hidden" name="id" value={product.id} />}
       <div className="grid grid-cols-2 gap-4">
