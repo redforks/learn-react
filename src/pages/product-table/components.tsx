@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import {
   Form,
   useFetcher,
@@ -159,10 +160,16 @@ export function ProductForm({
   const categoryId = useId()
   const priceId = useId()
   const fetcher = useFetcher()
-  const [formData, setFormData] = useState<ProductInput>(
-    product ?? emptyProduct,
-  )
-  const isSubmitting = fetcher.state !== 'idle'
+  const {
+    register,
+    reset,
+  } = useForm<ProductInput>({
+    defaultValues: product ?? emptyProduct,
+  })
+
+  useEffect(() => {
+    reset(product ?? emptyProduct)
+  }, [product, reset])
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
@@ -191,12 +198,10 @@ export function ProductForm({
           </label>
           <input
             id={nameId}
-            name="name"
             type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+            {...register('name')}
           />
         </div>
         <div>
@@ -208,14 +213,10 @@ export function ProductForm({
           </label>
           <input
             id={categoryId}
-            name="category"
             type="text"
-            value={formData.category}
-            onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
-            }
             required
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+            {...register('category')}
           />
         </div>
         <div>
@@ -224,27 +225,19 @@ export function ProductForm({
           </label>
           <input
             id={priceId}
-            name="price"
             type="text"
-            value={formData.price}
-            onChange={(e) =>
-              setFormData({ ...formData, price: e.target.value })
-            }
             required
             placeholder="$1"
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+            {...register('price')}
           />
         </div>
         <div className="flex items-end">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
             <input
               type="checkbox"
-              name="stocked"
-              checked={formData.stocked}
-              onChange={(e) =>
-                setFormData({ ...formData, stocked: e.target.checked })
-              }
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              {...register('stocked')}
             />
             In Stock
           </label>
@@ -260,10 +253,14 @@ export function ProductForm({
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={fetcher.state !== 'idle'}
           className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : product ? 'Update' : 'Create'}
+          {fetcher.state !== 'idle'
+            ? 'Saving...'
+            : product
+              ? 'Update'
+              : 'Create'}
         </button>
       </div>
     </fetcher.Form>
