@@ -1,8 +1,8 @@
 import { useId, useState } from 'react'
 import {
   Form,
+  useFetcher,
   useLoaderData,
-  useNavigation,
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
@@ -28,6 +28,7 @@ export function ProductRow({
   product: Product
   onEdit: (product: Product) => void
 }) {
+  const fetcher = useFetcher()
   const name = (
     <span className={product.stocked ? '' : 'text-red-500'}>
       {product.name}
@@ -47,16 +48,17 @@ export function ProductRow({
           >
             Edit
           </button>
-          <Form method="post" className="inline">
+          <fetcher.Form method="post" className="inline">
             <input type="hidden" name="_action" value="delete" />
             <input type="hidden" name="id" value={product.id} />
             <button
               type="submit"
-              className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+              disabled={fetcher.state !== 'idle'}
+              className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600 disabled:opacity-50"
             >
-              Delete
+              {fetcher.state !== 'idle' ? 'Deleting...' : 'Delete'}
             </button>
-          </Form>
+          </fetcher.Form>
         </div>
       </td>
     </tr>
@@ -154,14 +156,14 @@ export function ProductForm({
   const nameId = useId()
   const categoryId = useId()
   const priceId = useId()
+  const fetcher = useFetcher()
   const [formData, setFormData] = useState<ProductInput>(
     product ?? emptyProduct,
   )
-  const navigation = useNavigation()
-  const isSubmitting = navigation.state !== 'idle'
+  const isSubmitting = fetcher.state !== 'idle'
 
   return (
-    <Form
+    <fetcher.Form
       method="post"
       className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
     >
@@ -257,7 +259,7 @@ export function ProductForm({
           {isSubmitting ? 'Saving...' : product ? 'Update' : 'Create'}
         </button>
       </div>
-    </Form>
+    </fetcher.Form>
   )
 }
 
