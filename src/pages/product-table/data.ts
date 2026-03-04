@@ -52,7 +52,7 @@ export async function action({
   request: Request
 }): Promise<Response> {
   const formData = await request.formData()
-  const intent = formData.get('_action')
+  const intent = formData.get('intent')
 
   if (intent === Intent.Create) {
     const product = createSchema.parse(formData)

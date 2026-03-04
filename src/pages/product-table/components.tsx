@@ -49,7 +49,7 @@ export function ProductRow({
             Edit
           </button>
           <fetcher.Form method="post" className="inline">
-            <input type="hidden" name="_action" value={Intent.Delete} />
+            <input type="hidden" name="intent" value={Intent.Delete} />
             <input type="hidden" name="id" value={product.id} />
             <button
               type="submit"
@@ -180,7 +180,7 @@ export function ProductForm({
       </h3>
       <input
         type="hidden"
-        name="_action"
+        name="intent"
         value={product ? Intent.Update : Intent.Create}
       />
       {product && <input type="hidden" name="id" value={product.id} />}
