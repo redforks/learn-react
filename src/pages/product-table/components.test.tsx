@@ -399,4 +399,48 @@ describe('FilterableProductTable', () => {
       screen.queryByRole('button', { name: 'Add Product' }),
     ).not.toBeInTheDocument()
   })
+
+  it('shows edit form with product data when Edit button is clicked', async () => {
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    await screen.findByText('Apple')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0])
+
+    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+    const nameInput = screen.getByLabelText('Name') as HTMLInputElement
+    expect(nameInput.value).toBe('Apple')
+  })
+
+  it('hides form and clears editing state when Cancel is clicked', async () => {
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    await screen.findByText('Apple')
+    fireEvent.click(screen.getByRole('button', { name: 'Add Product' }))
+    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText('Add New Product')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Add Product' }),
+    ).toBeInTheDocument()
+  })
+
+  it('hides edit form and clears editing state when Cancel is clicked', async () => {
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    await screen.findByText('Apple')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0])
+    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText('Edit Product')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Add Product' }),
+    ).toBeInTheDocument()
+  })
 })
