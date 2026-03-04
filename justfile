@@ -23,5 +23,10 @@ test:
 test-watch:
     pnpm exec vitest
 
+# Run tests with coverage and open HTML report
+test-cov:
+    pnpm exec vitest run --coverage
+    xdg-open coverage/index.html
+
 outdated:
     pnpm outdated
