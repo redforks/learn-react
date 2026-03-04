@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createRoutesStub, useLocation } from 'react-router-dom'
 import {
   afterAll,
@@ -521,5 +522,195 @@ describe('FilterableProductTable', () => {
     // Wait for updated product to appear
     expect(await screen.findByText('Green Apple')).toBeInTheDocument()
     expect(screen.queryByText('Apple')).not.toBeInTheDocument()
+  })
+})
+
+describe('FilterableProductTable with userEvent', () => {
+  function createStub() {
+    return createRoutesStub([
+      {
+        path: '/',
+        Component: FilterableProductTable,
+        HydrateFallback: () => null,
+        loader,
+        action,
+      },
+    ])
+  }
+
+  it('adds a new product using userEvent.type and userEvent.click', async () => {
+    const user = userEvent.setup()
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    // Wait for products to load
+    await screen.findByText('Apple')
+
+    // Click Add Product button
+    await user.click(screen.getByRole('button', { name: 'Add Product' }))
+
+    // Fill in the form using userEvent.type for text input
+    await user.type(screen.getByLabelText('Name'), 'Mango')
+    await user.type(screen.getByLabelText('Category'), 'Fruits')
+    await user.type(screen.getByLabelText('Price'), '$3')
+
+    // Toggle checkbox using userEvent.click
+    const inStockCheckbox = screen.getByRole('checkbox', { name: 'In Stock' })
+    await user.click(inStockCheckbox)
+    expect(inStockCheckbox).toBeChecked()
+
+    // Submit the form
+    await user.click(screen.getByRole('button', { name: 'Create' }))
+
+    // Wait for form to close and new product to appear
+    await waitFor(() => {
+      expect(screen.queryByText('Add New Product')).not.toBeInTheDocument()
+    })
+    expect(await screen.findByText('Mango')).toBeInTheDocument()
+  })
+
+  it('updates a product using userEvent for input and click', async () => {
+    const user = userEvent.setup()
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    // Wait for products to load
+    await screen.findByText('Apple')
+
+    // Click the first Edit button (for Apple)
+    const editButtons = screen.getAllByRole('button', { name: 'Edit' })
+    await user.click(editButtons[0])
+
+    // Verify form shows current product data
+    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+    const nameInput = screen.getByLabelText('Name') as HTMLInputElement
+    expect(nameInput.value).toBe('Apple')
+
+    // Clear and update the name using userEvent
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Green Apple')
+
+    // Submit the form
+    await user.click(screen.getByRole('button', { name: 'Update' }))
+
+    // Wait for form to close and updated product to appear
+    await waitFor(() => {
+      expect(screen.queryByText('Edit Product')).not.toBeInTheDocument()
+    })
+    expect(await screen.findByText('Green Apple')).toBeInTheDocument()
+    expect(screen.queryByText('Apple')).not.toBeInTheDocument()
+  })
+
+  it('deletes a product using userEvent.click', async () => {
+    const user = userEvent.setup()
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    // Wait for products to load
+    expect(await screen.findByText('Apple')).toBeInTheDocument()
+
+    // Click the first Delete button (for Apple)
+    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
+    await user.click(deleteButtons[0])
+
+    // Wait for delete to complete - Apple should be gone
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Apple')).not.toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
+  })
+
+  it('cancels form using userEvent.click', async () => {
+    const user = userEvent.setup()
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    // Wait for products to load
+    await screen.findByText('Apple')
+
+    // Click Add Product button
+    await user.click(screen.getByRole('button', { name: 'Add Product' }))
+    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+
+    // Fill some data
+    await user.type(screen.getByLabelText('Name'), 'Test Product')
+
+    // Cancel the form
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    // Form should be closed, Add Product button visible again
+    expect(screen.queryByText('Add New Product')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Add Product' }),
+    ).toBeInTheDocument()
+    // Product should not be added
+    expect(screen.queryByText('Test Product')).not.toBeInTheDocument()
+  })
+})
+
+describe('SearchBar with userEvent', () => {
+  function renderWithUrl(initialUrl: string) {
+    function SearchSpy() {
+      const { search } = useLocation()
+      return <div data-testid="search">{search}</div>
+    }
+
+    function WithSpy() {
+      return (
+        <>
+          <SearchBar />
+          <SearchSpy />
+        </>
+      )
+    }
+
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: WithSpy,
+      },
+    ])
+    render(<Stub initialEntries={[initialUrl]} />)
+  }
+
+  it('types in search input using userEvent.type', async () => {
+    const user = userEvent.setup()
+    renderWithUrl('/')
+
+    const input = screen.getByPlaceholderText('Search...')
+    await user.type(input, 'apple')
+
+    expect(screen.getByTestId('search')).toHaveTextContent('search=apple')
+  })
+
+  it('clears search input using userEvent.clear', async () => {
+    const user = userEvent.setup()
+    renderWithUrl('/?search=apple')
+
+    const input = screen.getByPlaceholderText('Search...')
+    expect((input as HTMLInputElement).value).toBe('apple')
+
+    await user.clear(input)
+
+    expect(screen.getByTestId('search')).toHaveTextContent('search=')
+  })
+
+  it('toggles checkbox using userEvent.click', async () => {
+    const user = userEvent.setup()
+    renderWithUrl('/')
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /only show products in stock/i,
+    })
+    expect((checkbox as HTMLInputElement).checked).toBe(false)
+
+    await user.click(checkbox)
+    expect(screen.getByTestId('search')).toHaveTextContent('inStockOnly=true')
+
+    await user.click(checkbox)
+    expect(screen.getByTestId('search')).toHaveTextContent('search=')
+    expect(screen.getByTestId('search')).not.toHaveTextContent('inStockOnly')
   })
 })
