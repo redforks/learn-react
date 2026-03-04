@@ -17,7 +17,7 @@ import {
   ProductTable,
   SearchBar,
 } from './components'
-import { loader } from './data'
+import { action, loader } from './data'
 import { resetProducts, server } from './mocks'
 
 beforeAll(() => server.listen())
@@ -63,15 +63,21 @@ describe('ProductRow', () => {
     name: 'Apple',
   }
 
+  function renderWithRouter(ui: React.ReactElement) {
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: () => ui,
+      },
+    ])
+    return render(<Stub initialEntries={['/']} />)
+  }
+
   it('renders product name and price', () => {
-    render(
+    renderWithRouter(
       <table>
         <tbody>
-          <ProductRow
-            product={mockProduct}
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
+          <ProductRow product={mockProduct} onEdit={() => {}} />
         </tbody>
       </table>,
     )
@@ -81,14 +87,10 @@ describe('ProductRow', () => {
   })
 
   it('renders stocked product in normal text', () => {
-    const { container } = render(
+    const { container } = renderWithRouter(
       <table>
         <tbody>
-          <ProductRow
-            product={mockProduct}
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
+          <ProductRow product={mockProduct} onEdit={() => {}} />
         </tbody>
       </table>,
     )
@@ -105,10 +107,10 @@ describe('ProductRow', () => {
       stocked: false,
       name: 'Passionfruit',
     }
-    const { container } = render(
+    const { container } = renderWithRouter(
       <table>
         <tbody>
-          <ProductRow product={product} onEdit={() => {}} onDelete={() => {}} />
+          <ProductRow product={product} onEdit={() => {}} />
         </tbody>
       </table>,
     )
@@ -118,14 +120,10 @@ describe('ProductRow', () => {
   })
 
   it('renders Edit and Delete buttons', () => {
-    render(
+    renderWithRouter(
       <table>
         <tbody>
-          <ProductRow
-            product={mockProduct}
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
+          <ProductRow product={mockProduct} onEdit={() => {}} />
         </tbody>
       </table>,
     )
@@ -136,14 +134,10 @@ describe('ProductRow', () => {
 
   it('calls onEdit when Edit button is clicked', () => {
     const onEdit = vi.fn()
-    render(
+    renderWithRouter(
       <table>
         <tbody>
-          <ProductRow
-            product={mockProduct}
-            onEdit={onEdit}
-            onDelete={() => {}}
-          />
+          <ProductRow product={mockProduct} onEdit={onEdit} />
         </tbody>
       </table>,
     )
@@ -151,29 +145,21 @@ describe('ProductRow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     expect(onEdit).toHaveBeenCalledWith(mockProduct)
   })
-
-  it('calls onDelete when Delete button is clicked', () => {
-    const onDelete = vi.fn()
-    render(
-      <table>
-        <tbody>
-          <ProductRow
-            product={mockProduct}
-            onEdit={() => {}}
-            onDelete={onDelete}
-          />
-        </tbody>
-      </table>,
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
-    expect(onDelete).toHaveBeenCalledWith('1')
-  })
 })
 
 describe('ProductTable', () => {
+  function renderWithRouter(ui: React.ReactElement) {
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: () => ui,
+      },
+    ])
+    return render(<Stub initialEntries={['/']} />)
+  }
+
   it('renders table with name, price and actions headers', () => {
-    render(<ProductTable products={[]} onEdit={() => {}} onDelete={() => {}} />)
+    renderWithRouter(<ProductTable products={[]} onEdit={() => {}} />)
 
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
@@ -204,13 +190,7 @@ describe('ProductTable', () => {
         name: 'Carrot',
       },
     ]
-    render(
-      <ProductTable
-        products={products}
-        onEdit={() => {}}
-        onDelete={() => {}}
-      />,
-    )
+    renderWithRouter(<ProductTable products={products} onEdit={() => {}} />)
 
     expect(screen.getByText('Fruits')).toBeInTheDocument()
     expect(screen.getByText('Vegetables')).toBeInTheDocument()
@@ -220,7 +200,7 @@ describe('ProductTable', () => {
   })
 
   it('renders empty table when no products', () => {
-    render(<ProductTable products={[]} onEdit={() => {}} onDelete={() => {}} />)
+    renderWithRouter(<ProductTable products={[]} onEdit={() => {}} />)
 
     expect(screen.getByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
@@ -244,12 +224,8 @@ describe('ProductTable', () => {
         name: 'Orange',
       },
     ]
-    const { container } = render(
-      <ProductTable
-        products={products}
-        onEdit={() => {}}
-        onDelete={() => {}}
-      />,
+    const { container } = renderWithRouter(
+      <ProductTable products={products} onEdit={() => {}} />,
     )
 
     const categoryHeaders = container.querySelectorAll('th[colSpan="3"]')
@@ -360,8 +336,18 @@ describe('SearchBar', () => {
 })
 
 describe('ProductForm', () => {
+  function renderWithRouter(form: React.ReactElement) {
+    const Stub = createRoutesStub([
+      {
+        path: '/',
+        Component: () => form,
+      },
+    ])
+    return render(<Stub initialEntries={['/']} />)
+  }
+
   it('renders form with empty fields for new product', () => {
-    render(<ProductForm product={null} onSave={() => {}} onCancel={() => {}} />)
+    renderWithRouter(<ProductForm product={null} onCancel={() => {}} />)
 
     expect(screen.getByText('Add New Product')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
@@ -375,9 +361,7 @@ describe('ProductForm', () => {
       stocked: true,
       name: 'Apple',
     }
-    render(
-      <ProductForm product={product} onSave={() => {}} onCancel={() => {}} />,
-    )
+    renderWithRouter(<ProductForm product={product} onCancel={() => {}} />)
 
     expect(screen.getByText('Edit Product')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
@@ -385,35 +369,41 @@ describe('ProductForm', () => {
 
   it('calls onCancel when Cancel button is clicked', () => {
     const onCancel = vi.fn()
-    render(<ProductForm product={null} onSave={() => {}} onCancel={onCancel} />)
+    renderWithRouter(<ProductForm product={null} onCancel={onCancel} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
   })
 
-  it('calls onSave with form data when submitted', () => {
-    const onSave = vi.fn()
-    const { container } = render(
-      <ProductForm product={null} onSave={onSave} onCancel={() => {}} />,
+  it('has hidden _action input with create value for new product', () => {
+    const { container } = renderWithRouter(
+      <ProductForm product={null} onCancel={() => {}} />,
     )
 
-    const inputs = container.querySelectorAll('input[type="text"]')
-    const nameInput = inputs[0]
-    const categoryInput = inputs[1]
-    const priceInput = inputs[2]
+    const actionInput = container.querySelector(
+      'input[name="_action"]',
+    ) as HTMLInputElement
+    expect(actionInput).toBeTruthy()
+    expect(actionInput.value).toBe('create')
+  })
 
-    fireEvent.change(nameInput, { target: { value: 'Mango' } })
-    fireEvent.change(categoryInput, { target: { value: 'Fruits' } })
-    fireEvent.change(priceInput, { target: { value: '$3' } })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
-
-    expect(onSave).toHaveBeenCalledWith({
-      name: 'Mango',
+  it('has hidden _action input with update value for editing', () => {
+    const product = {
+      id: '1',
       category: 'Fruits',
-      price: '$3',
-      stocked: false,
-    })
+      price: '$1',
+      stocked: true,
+      name: 'Apple',
+    }
+    const { container } = renderWithRouter(
+      <ProductForm product={product} onCancel={() => {}} />,
+    )
+
+    const actionInput = container.querySelector(
+      'input[name="_action"]',
+    ) as HTMLInputElement
+    expect(actionInput).toBeTruthy()
+    expect(actionInput.value).toBe('update')
   })
 })
 
@@ -425,6 +415,7 @@ describe('FilterableProductTable', () => {
         Component: FilterableProductTable,
         HydrateFallback: () => null,
         loader,
+        action,
       },
     ])
   }

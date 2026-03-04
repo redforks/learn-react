@@ -32,3 +32,36 @@ export async function updateProduct(product: Product): Promise<Product> {
 export async function deleteProduct(id: string): Promise<void> {
   await api.delete(id)
 }
+
+export async function action({
+  request,
+}: {
+  request: Request
+}): Promise<Response> {
+  const formData = await request.formData()
+  const intent = formData.get('_action')
+
+  if (intent === 'create') {
+    const product: ProductInput = {
+      name: formData.get('name') as string,
+      category: formData.get('category') as string,
+      price: formData.get('price') as string,
+      stocked: formData.get('stocked') === 'true',
+    }
+    await createProduct(product)
+  } else if (intent === 'update') {
+    const product: Product = {
+      id: formData.get('id') as string,
+      name: formData.get('name') as string,
+      category: formData.get('category') as string,
+      price: formData.get('price') as string,
+      stocked: formData.get('stocked') === 'true',
+    }
+    await updateProduct(product)
+  } else if (intent === 'delete') {
+    const id = formData.get('id') as string
+    await deleteProduct(id)
+  }
+
+  return new Response(null, { status: 302, headers: { Location: '.' } })
+}

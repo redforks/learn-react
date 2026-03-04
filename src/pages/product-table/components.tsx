@@ -2,17 +2,11 @@ import { useId, useState } from 'react'
 import {
   Form,
   useLoaderData,
-  useRevalidator,
+  useNavigation,
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
-import {
-  createProduct,
-  deleteProduct,
-  type Product,
-  type ProductInput,
-  updateProduct,
-} from './data'
+import type { Product, ProductInput } from './data'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
@@ -30,11 +24,9 @@ export function ProductCategoryRow({ category }: { category: string }) {
 export function ProductRow({
   product,
   onEdit,
-  onDelete,
 }: {
   product: Product
   onEdit: (product: Product) => void
-  onDelete: (id: string) => void
 }) {
   const name = (
     <span className={product.stocked ? '' : 'text-red-500'}>
@@ -55,13 +47,16 @@ export function ProductRow({
           >
             Edit
           </button>
-          <button
-            type="button"
-            onClick={() => onDelete(product.id)}
-            className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-          >
-            Delete
-          </button>
+          <Form method="post" className="inline">
+            <input type="hidden" name="_action" value="delete" />
+            <input type="hidden" name="id" value={product.id} />
+            <button
+              type="submit"
+              className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </Form>
         </div>
       </td>
     </tr>
@@ -71,11 +66,9 @@ export function ProductRow({
 export function ProductTable({
   products,
   onEdit,
-  onDelete,
 }: {
   products: Array<Product>
   onEdit: (product: Product) => void
-  onDelete: (id: string) => void
 }) {
   const rows: Array<React.ReactNode> = []
   let lastCategory: string | null = null
@@ -89,14 +82,7 @@ export function ProductTable({
         />,
       )
     }
-    rows.push(
-      <ProductRow
-        product={product}
-        key={product.id}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />,
-    )
+    rows.push(<ProductRow product={product} key={product.id} onEdit={onEdit} />)
     lastCategory = product.category
   })
 
@@ -160,11 +146,9 @@ const emptyProduct: ProductInput = {
 
 export function ProductForm({
   product,
-  onSave,
   onCancel,
 }: {
   product: Product | null
-  onSave: (data: ProductInput) => void
   onCancel: () => void
 }) {
   const nameId = useId()
@@ -173,20 +157,23 @@ export function ProductForm({
   const [formData, setFormData] = useState<ProductInput>(
     product ?? emptyProduct,
   )
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
+  const navigation = useNavigation()
+  const isSubmitting = navigation.state !== 'idle'
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <Form
+      method="post"
       className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
     >
       <h3 className="mb-3 text-sm font-semibold text-gray-700">
         {product ? 'Edit Product' : 'Add New Product'}
       </h3>
+      <input
+        type="hidden"
+        name="_action"
+        value={product ? 'update' : 'create'}
+      />
+      {product && <input type="hidden" name="id" value={product.id} />}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor={nameId} className="mb-1 block text-xs text-gray-600">
@@ -194,6 +181,7 @@ export function ProductForm({
           </label>
           <input
             id={nameId}
+            name="name"
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -210,6 +198,7 @@ export function ProductForm({
           </label>
           <input
             id={categoryId}
+            name="category"
             type="text"
             value={formData.category}
             onChange={(e) =>
@@ -225,6 +214,7 @@ export function ProductForm({
           </label>
           <input
             id={priceId}
+            name="price"
             type="text"
             value={formData.price}
             onChange={(e) =>
@@ -239,6 +229,8 @@ export function ProductForm({
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
             <input
               type="checkbox"
+              name="stocked"
+              value="true"
               checked={formData.stocked}
               onChange={(e) =>
                 setFormData({ ...formData, stocked: e.target.checked })
@@ -259,42 +251,20 @@ export function ProductForm({
         </button>
         <button
           type="submit"
-          className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600"
+          disabled={isSubmitting}
+          className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
         >
-          {product ? 'Update' : 'Create'}
+          {isSubmitting ? 'Saving...' : product ? 'Update' : 'Create'}
         </button>
       </div>
-    </form>
+    </Form>
   )
 }
 
 export function FilterableProductTable() {
   const products = useLoaderData<Product[]>()
-  const revalidator = useRevalidator()
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
-
-  const handleCreate = async (data: ProductInput) => {
-    await createProduct(data)
-    setShowForm(false)
-    revalidator.revalidate()
-  }
-
-  const handleUpdate = async (data: ProductInput) => {
-    if (editingProduct) {
-      await updateProduct({ ...editingProduct, ...data })
-      setEditingProduct(null)
-      setShowForm(false)
-      revalidator.revalidate()
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await deleteProduct(id)
-      revalidator.revalidate()
-    }
-  }
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
@@ -321,17 +291,9 @@ export function FilterableProductTable() {
         )}
       </div>
       {showForm && (
-        <ProductForm
-          product={editingProduct}
-          onSave={editingProduct ? handleUpdate : handleCreate}
-          onCancel={handleCancel}
-        />
+        <ProductForm product={editingProduct} onCancel={handleCancel} />
       )}
-      <ProductTable
-        products={products}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <ProductTable products={products} onEdit={handleEdit} />
     </div>
   )
 }

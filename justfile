@@ -13,6 +13,7 @@ preview:
 # Run linter
 lint:
     pnpm exec tsc --noEmit
+    pnpm exec tsc --project mock/tsconfig.json
     biome lint src/
 
 # Run tests once
