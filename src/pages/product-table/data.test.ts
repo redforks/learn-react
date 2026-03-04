@@ -13,38 +13,34 @@ afterAll(() => server.close())
 
 describe('loader', () => {
   it('returns all products when no search params', async () => {
-    const response = await loader({ request: new Request('http://localhost/') })
-    const products = await response
+    const products = await loader({ request: new Request('http://localhost/') })
 
     expect(products).toHaveLength(6)
     expect(products[0].name).toBe('Apple')
   })
 
   it('filters products by search term', async () => {
-    const response = await loader({
-      request: new Request('http://localhost/?search=dragon'),
+    const products = await loader({
+        request: new Request('http://localhost/?search=dragon'),
     })
-    const products = await response
 
     expect(products).toHaveLength(1)
     expect(products[0].name).toBe('Dragonfruit')
   })
 
   it('filters products by inStockOnly', async () => {
-    const response = await loader({
-      request: new Request('http://localhost/?inStockOnly=true'),
+    const products = await loader({
+        request: new Request('http://localhost/?inStockOnly=true'),
     })
-    const products = await response
 
     expect(products).toHaveLength(4)
     expect(products.every((p) => p.stocked)).toBe(true)
   })
 
   it('filters products by both search and inStockOnly', async () => {
-    const response = await loader({
-      request: new Request('http://localhost/?search=fruit&inStockOnly=true'),
+    const products = await loader({
+        request: new Request('http://localhost/?search=fruit&inStockOnly=true'),
     })
-    const products = await response
 
     // Dragonfruit is stocked and contains "fruit", Passionfruit contains "fruit" but is not stocked
     expect(products).toHaveLength(1)
