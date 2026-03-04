@@ -43,7 +43,10 @@ export async function loader({
   request: Request
 }): Promise<Product[]> {
   const { searchParams } = new URL(request.url)
-  return api.get('', { searchParams }).json<Product[]>()
+  const products = await api.get('', { searchParams }).json<Product[]>()
+  return products.sort(
+    (a, b) => a.category.localeCompare(b.category) || a.id.localeCompare(b.id),
+  )
 }
 
 export async function action({

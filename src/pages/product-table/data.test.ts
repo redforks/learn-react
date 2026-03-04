@@ -21,7 +21,7 @@ describe('loader', () => {
 
   it('filters products by search term', async () => {
     const products = await loader({
-        request: new Request('http://localhost/?search=dragon'),
+      request: new Request('http://localhost/?search=dragon'),
     })
 
     expect(products).toHaveLength(1)
@@ -30,7 +30,7 @@ describe('loader', () => {
 
   it('filters products by inStockOnly', async () => {
     const products = await loader({
-        request: new Request('http://localhost/?inStockOnly=true'),
+      request: new Request('http://localhost/?inStockOnly=true'),
     })
 
     expect(products).toHaveLength(4)
@@ -39,7 +39,7 @@ describe('loader', () => {
 
   it('filters products by both search and inStockOnly', async () => {
     const products = await loader({
-        request: new Request('http://localhost/?search=fruit&inStockOnly=true'),
+      request: new Request('http://localhost/?search=fruit&inStockOnly=true'),
     })
 
     // Dragonfruit is stocked and contains "fruit", Passionfruit contains "fruit" but is not stocked
@@ -51,7 +51,7 @@ describe('loader', () => {
 describe('action', () => {
   it('creates a new product', async () => {
     const formData = new FormData()
-    formData.set('_action', 'create')
+    formData.set('intent', 'create')
     formData.set('name', 'Mango')
     formData.set('category', 'Fruits')
     formData.set('price', '$3')
@@ -78,7 +78,7 @@ describe('action', () => {
 
   it('updates an existing product', async () => {
     const formData = new FormData()
-    formData.set('_action', 'update')
+    formData.set('intent', 'update')
     formData.set('id', '1')
     formData.set('name', 'Green Apple')
     formData.set('category', 'Fruits')
@@ -106,7 +106,7 @@ describe('action', () => {
 
   it('deletes a product', async () => {
     const formData = new FormData()
-    formData.set('_action', 'delete')
+    formData.set('intent', 'delete')
     formData.set('id', '1')
 
     const response = await action({
@@ -128,7 +128,7 @@ describe('action', () => {
 
   it('returns success for unknown action', async () => {
     const formData = new FormData()
-    formData.set('_action', 'unknown')
+    formData.set('intent', 'unknown')
 
     const response = await action({
       request: new Request('http://localhost/', {

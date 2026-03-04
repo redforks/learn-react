@@ -322,7 +322,7 @@ describe('ProductForm', () => {
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
 
     const actionInput = container.querySelector(
-      'input[name="_action"]',
+      'input[name="intent"]',
     ) as HTMLInputElement
     expect(actionInput).toBeTruthy()
     expect(actionInput.value).toBe('create')
@@ -344,7 +344,7 @@ describe('ProductForm', () => {
     expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
 
     const actionInput = container.querySelector(
-      'input[name="_action"]',
+      'input[name="intent"]',
     ) as HTMLInputElement
     expect(actionInput).toBeTruthy()
     expect(actionInput.value).toBe('update')
