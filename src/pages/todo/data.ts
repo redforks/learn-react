@@ -40,39 +40,13 @@ const updateSchema = zfd.formData({
   text: zfd.text(z.string().trim().min(1)),
 })
 
-type CreateInput = z.infer<typeof createSchema>
-type DeleteInput = z.infer<typeof deleteSchema>
-type ToggleInput = z.infer<typeof toggleSchema>
-type UpdateInput = z.infer<typeof updateSchema>
-
 const api = ky.create({ prefixUrl: '/api/todos' })
 
 export async function loader(): Promise<TodoItem[]> {
   return api.get('').json<TodoItem[]>()
 }
 
-async function handleCreate(input: CreateInput): Promise<TodoItem> {
-  return api.post('', { json: { text: input.text } }).json<TodoItem>()
-}
-
-async function handleDelete(input: DeleteInput): Promise<undefined> {
-  await api.delete(`${input.id}`).json<{ success: boolean }>()
-  return undefined
-}
-
-async function handleToggle(input: ToggleInput): Promise<TodoItem> {
-  return api.patch(`${input.id}/toggle`).json<TodoItem>()
-}
-
-async function handleUpdate(input: UpdateInput): Promise<TodoItem> {
-  return api.put(`${input.id}`, { json: { text: input.text } }).json<TodoItem>()
-}
-
-export async function action({
-  request,
-}: {
-  request: Request
-}): Promise<TodoItem | undefined> {
+export async function action({ request }: { request: Request }) {
   const formData = await request.formData()
   const intent = formData.get('intent')
 
@@ -80,22 +54,24 @@ export async function action({
     case Intent.Create: {
       const result = createSchema.safeParse(formData)
       if (!result.success) return
-      return handleCreate(result.data)
+      return api.post('', { json: { text: result.data.text } }).json<TodoItem>()
     }
     case Intent.Delete: {
       const result = deleteSchema.safeParse(formData)
       if (!result.success) return
-      return handleDelete(result.data)
+      return api.delete(`${result.data.id}`).json<{ success: boolean }>()
     }
     case Intent.Toggle: {
       const result = toggleSchema.safeParse(formData)
       if (!result.success) return
-      return handleToggle(result.data)
+      return api.patch(`${result.data.id}/toggle`).json<TodoItem>()
     }
     case Intent.Update: {
       const result = updateSchema.safeParse(formData)
       if (!result.success) return
-      return handleUpdate(result.data)
+      return api
+        .put(`${result.data.id}`, { json: { text: result.data.text } })
+        .json<TodoItem>()
     }
     default:
       return

@@ -21,18 +21,6 @@ export async function loader({
   return api.get('', { searchParams }).json<Product[]>()
 }
 
-export async function createProduct(product: ProductInput): Promise<Product> {
-  return api.post('', { json: product }).json<Product>()
-}
-
-export async function updateProduct(product: Product): Promise<Product> {
-  return api.put(product.id, { json: product }).json<Product>()
-}
-
-export async function deleteProduct(id: string): Promise<void> {
-  await api.delete(id)
-}
-
 export async function action({
   request,
 }: {
@@ -48,7 +36,7 @@ export async function action({
       price: formData.get('price') as string,
       stocked: formData.get('stocked') === 'true',
     }
-    await createProduct(product)
+    await api.post('', { json: product })
   } else if (intent === 'update') {
     const product: Product = {
       id: formData.get('id') as string,
@@ -57,10 +45,9 @@ export async function action({
       price: formData.get('price') as string,
       stocked: formData.get('stocked') === 'true',
     }
-    await updateProduct(product)
+    await api.put(product.id, { json: product })
   } else if (intent === 'delete') {
-    const id = formData.get('id') as string
-    await deleteProduct(id)
+    await api.delete(formData.get('id') as string)
   }
 
   return new Response(null, { status: 302, headers: { Location: '.' } })
