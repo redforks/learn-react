@@ -1,4 +1,23 @@
 import ky from 'ky'
+import { zfd } from 'zod-form-data'
+
+const baseProductSchema = {
+  name: zfd.text(),
+  category: zfd.text(),
+  price: zfd.text(),
+  stocked: zfd.checkbox(),
+}
+
+const createSchema = zfd.formData(baseProductSchema)
+
+const updateSchema = zfd.formData({
+  ...baseProductSchema,
+  id: zfd.text(),
+})
+
+const deleteSchema = zfd.formData({
+  id: zfd.text(),
+})
 
 export type Product = {
   id: string
@@ -30,24 +49,14 @@ export async function action({
   const intent = formData.get('_action')
 
   if (intent === 'create') {
-    const product: ProductInput = {
-      name: formData.get('name') as string,
-      category: formData.get('category') as string,
-      price: formData.get('price') as string,
-      stocked: formData.get('stocked') === 'true',
-    }
+    const product = createSchema.parse(formData)
     await api.post('', { json: product })
   } else if (intent === 'update') {
-    const product: Product = {
-      id: formData.get('id') as string,
-      name: formData.get('name') as string,
-      category: formData.get('category') as string,
-      price: formData.get('price') as string,
-      stocked: formData.get('stocked') === 'true',
-    }
+    const product = updateSchema.parse(formData)
     await api.put(product.id, { json: product })
   } else if (intent === 'delete') {
-    await api.delete(formData.get('id') as string)
+    const { id } = deleteSchema.parse(formData)
+    await api.delete(id)
   }
 
   return new Response(null, { status: 302, headers: { Location: '.' } })
