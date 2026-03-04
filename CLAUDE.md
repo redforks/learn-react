@@ -6,7 +6,7 @@ This is a React application built with modern tooling.
 
 ## Tech Stack
 
-- **Runtime**: [Bun](https://bun.sh/) - Fast JavaScript runtime and package manager
+- **Package Manager**: [pnpm](https://pnpm.io/) - Fast, disk space efficient package manager
 - **Build Tool**: [Vite](https://vitejs.dev/) - Next-generation frontend tooling
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 
