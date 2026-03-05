@@ -1,6 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@tanstack/react-form'
 import { useEffect, useId, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import {
   Form,
   useFetcher,
@@ -166,13 +165,25 @@ export function ProductForm({
   const categoryId = useId()
   const priceId = useId()
   const fetcher = useFetcher()
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ProductInput>({
-    resolver: zodResolver(baseProductSchema),
+  const form = useForm({
     defaultValues: product ?? emptyProduct,
+    validators: {
+      onChange: baseProductSchema,
+    },
+    onSubmit: async ({ value }: { value: ProductInput }) => {
+      const data = new FormData()
+      data.append('intent', product ? Intent.Update : Intent.Create)
+      if (product) {
+        data.append('id', product.id)
+      }
+      data.append('name', value.name)
+      data.append('category', value.category)
+      data.append('price', value.price)
+      if (value.stocked) {
+        data.append('stocked', 'on')
+      }
+      fetcher.submit(data, { method: 'post' })
+    },
   })
 
   useEffect(() => {
@@ -181,16 +192,14 @@ export function ProductForm({
     }
   }, [fetcher.data, fetcher.state, onSuccess])
 
-  const onSubmit = (_data: ProductInput, e?: React.BaseSyntheticEvent) => {
-    if (e?.target) {
-      fetcher.submit(e.target, { method: 'post' })
-    }
-  }
-
   return (
     <form
       method="post"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
       className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
     >
       <h3 className="mb-3 text-sm font-semibold text-gray-700">
@@ -203,64 +212,120 @@ export function ProductForm({
       />
       {product && <input type="hidden" name="id" value={product.id} />}
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor={nameId} className="mb-1 block text-xs text-gray-600">
-            Name
-          </label>
-          <input
-            id={nameId}
-            type="text"
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
-            {...register('name')}
-          />
-          {errors.name && (
-            <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+        <form.Field name="name">
+          {(field) => (
+            <div>
+              <label
+                htmlFor={nameId}
+                className="mb-1 block text-xs text-gray-600"
+              >
+                Name
+              </label>
+              <input
+                id={nameId}
+                type="text"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+              />
+              {field.state.meta.errors.length > 0 && (
+                <p className="mt-1 text-xs text-red-500">
+                  {field.state.meta.errors
+                    .map((e) =>
+                      typeof e === 'string'
+                        ? e
+                        : (e as { message: string }).message,
+                    )
+                    .join(', ')}
+                </p>
+              )}
+            </div>
           )}
-        </div>
-        <div>
-          <label
-            htmlFor={categoryId}
-            className="mb-1 block text-xs text-gray-600"
-          >
-            Category
-          </label>
-          <input
-            id={categoryId}
-            type="text"
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
-            {...register('category')}
-          />
-          {errors.category && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.category.message}
-            </p>
+        </form.Field>
+        <form.Field name="category">
+          {(field) => (
+            <div>
+              <label
+                htmlFor={categoryId}
+                className="mb-1 block text-xs text-gray-600"
+              >
+                Category
+              </label>
+              <input
+                id={categoryId}
+                type="text"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+              />
+              {field.state.meta.errors.length > 0 && (
+                <p className="mt-1 text-xs text-red-500">
+                  {field.state.meta.errors
+                    .map((e) =>
+                      typeof e === 'string'
+                        ? e
+                        : (e as { message: string }).message,
+                    )
+                    .join(', ')}
+                </p>
+              )}
+            </div>
           )}
-        </div>
-        <div>
-          <label htmlFor={priceId} className="mb-1 block text-xs text-gray-600">
-            Price
-          </label>
-          <input
-            id={priceId}
-            type="text"
-            placeholder="1.00"
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
-            {...register('price')}
-          />
-          {errors.price && (
-            <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>
+        </form.Field>
+        <form.Field name="price">
+          {(field) => (
+            <div>
+              <label
+                htmlFor={priceId}
+                className="mb-1 block text-xs text-gray-600"
+              >
+                Price
+              </label>
+              <input
+                id={priceId}
+                type="text"
+                placeholder="1.00"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
+              />
+              {field.state.meta.errors.length > 0 && (
+                <p className="mt-1 text-xs text-red-500">
+                  {field.state.meta.errors
+                    .map((e) =>
+                      typeof e === 'string'
+                        ? e
+                        : (e as { message: string }).message,
+                    )
+                    .join(', ')}
+                </p>
+              )}
+            </div>
           )}
-        </div>
-        <div className="flex items-end">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              {...register('stocked')}
-            />
-            In Stock
-          </label>
-        </div>
+        </form.Field>
+        <form.Field name="stocked">
+          {(field) => (
+            <div className="flex items-end">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                In Stock
+              </label>
+            </div>
+          )}
+        </form.Field>
       </div>
       <div className="mt-4 flex justify-end gap-2">
         <button
