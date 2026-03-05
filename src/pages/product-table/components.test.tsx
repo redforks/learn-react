@@ -538,6 +538,28 @@ describe('FilterableProductTable with userEvent', () => {
     ])
   }
 
+  it('shows validation errors when submitting empty form', async () => {
+    const user = userEvent.setup()
+    const Stub = createStub()
+    render(<Stub initialEntries={['/']} />)
+
+    // Wait for products to load
+    await screen.findByText('Apple')
+
+    // Click Add Product button
+    await user.click(screen.getByRole('button', { name: 'Add Product' }))
+
+    // Submit the form empty
+    await user.click(screen.getByRole('button', { name: 'Create' }))
+
+    // Wait for validation errors to appear
+    expect(await screen.findByText('Name is required')).toBeInTheDocument()
+    expect(screen.getByText('Category is required')).toBeInTheDocument()
+    expect(
+      screen.getByText('Price must be a valid decimal'),
+    ).toBeInTheDocument()
+  })
+
   it('adds a new product using userEvent.type and userEvent.click', async () => {
     const user = userEvent.setup()
     const Stub = createStub()

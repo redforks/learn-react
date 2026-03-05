@@ -8,24 +8,33 @@ export enum Intent {
   Delete = 'delete',
 }
 
-const baseProductSchema = {
-  name: zfd.text(),
-  category: zfd.text(),
-  price: zfd.text(
-    z.string().
-      regex(/^\d+(\.\d+)?$/, 'Price must be a valid decimal'),
-  ),
-  stocked: zfd.checkbox(),
-}
-
-const createSchema = zfd.formData(baseProductSchema)
-
-const updateSchema = zfd.formData({
-  ...baseProductSchema,
-  id: zfd.text(),
+export const baseProductSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  category: z.string().min(1, 'Category is required'),
+  price: z.string().regex(/^\d+(\.\d+)?$/, 'Price must be a valid decimal'),
+  stocked: z.boolean(),
 })
 
-const deleteSchema = zfd.formData({
+export const createSchema = zfd.formData(
+  z.object({
+    name: zfd.text(baseProductSchema.shape.name),
+    category: zfd.text(baseProductSchema.shape.category),
+    price: zfd.text(baseProductSchema.shape.price),
+    stocked: zfd.checkbox(),
+  }),
+)
+
+export const updateSchema = zfd.formData(
+  z.object({
+    name: zfd.text(baseProductSchema.shape.name),
+    category: zfd.text(baseProductSchema.shape.category),
+    price: zfd.text(baseProductSchema.shape.price),
+    stocked: zfd.checkbox(),
+    id: zfd.text(),
+  }),
+)
+
+export const deleteSchema = zfd.formData({
   id: zfd.text(),
 })
 

@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import {
@@ -7,7 +8,12 @@ import {
   useSearchParams,
   useSubmit,
 } from 'react-router-dom'
-import { Intent, type Product, type ProductInput } from './data'
+import {
+  baseProductSchema,
+  Intent,
+  type Product,
+  type ProductInput,
+} from './data'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
@@ -160,13 +166,14 @@ export function ProductForm({
   const categoryId = useId()
   const priceId = useId()
   const fetcher = useFetcher()
-  const { register, reset } = useForm<ProductInput>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ProductInput>({
+    resolver: zodResolver(baseProductSchema),
     defaultValues: product ?? emptyProduct,
   })
-
-  useEffect(() => {
-    reset(product ?? emptyProduct)
-  }, [product, reset])
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
@@ -174,9 +181,16 @@ export function ProductForm({
     }
   }, [fetcher.data, fetcher.state, onSuccess])
 
+  const onSubmit = (_data: ProductInput, e?: React.BaseSyntheticEvent) => {
+    if (e?.target) {
+      fetcher.submit(e.target, { method: 'post' })
+    }
+  }
+
   return (
-    <fetcher.Form
+    <form
       method="post"
+      onSubmit={handleSubmit(onSubmit)}
       className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
     >
       <h3 className="mb-3 text-sm font-semibold text-gray-700">
@@ -196,10 +210,12 @@ export function ProductForm({
           <input
             id={nameId}
             type="text"
-            required
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
             {...register('name')}
           />
+          {errors.name && (
+            <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+          )}
         </div>
         <div>
           <label
@@ -211,10 +227,14 @@ export function ProductForm({
           <input
             id={categoryId}
             type="text"
-            required
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
             {...register('category')}
           />
+          {errors.category && (
+            <p className="mt-1 text-xs text-red-500">
+              {errors.category.message}
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor={priceId} className="mb-1 block text-xs text-gray-600">
@@ -223,11 +243,13 @@ export function ProductForm({
           <input
             id={priceId}
             type="text"
-            required
             placeholder="1.00"
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
             {...register('price')}
           />
+          {errors.price && (
+            <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>
+          )}
         </div>
         <div className="flex items-end">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
@@ -260,7 +282,7 @@ export function ProductForm({
               : 'Create'}
         </button>
       </div>
-    </fetcher.Form>
+    </form>
   )
 }
 
@@ -295,6 +317,7 @@ export function FilterableProductTable() {
       </div>
       {showForm && (
         <ProductForm
+          key={editingProduct ? editingProduct.id : 'new'}
           product={editingProduct}
           onCancel={handleCancel}
           onSuccess={handleCancel}
