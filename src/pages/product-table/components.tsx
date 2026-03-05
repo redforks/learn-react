@@ -1,18 +1,14 @@
 import { useForm } from '@tanstack/react-form'
-import { useEffect, useId, useState } from 'react'
+import { useRouter } from '@tanstack/react-router'
+import { useId, useState } from 'react'
 import {
-  Form,
-  useFetcher,
-  useLoaderData,
-  useSearchParams,
-  useSubmit,
-} from 'react-router-dom'
-import {
+  action,
   baseProductSchema,
   Intent,
   type Product,
   type ProductInput,
 } from './data'
+import { productRoute } from './route'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
@@ -34,12 +30,31 @@ export function ProductRow({
   product: Product
   onEdit: (product: Product) => void
 }) {
-  const fetcher = useFetcher()
+  const router = useRouter()
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const name = (
     <span className={product.stocked ? '' : 'text-red-500'}>
       {product.name}
     </span>
   )
+
+  async function handleDelete(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsDeleting(true)
+    const formData = new FormData(e.currentTarget)
+    try {
+      await action({
+        request: new Request('http://localhost', {
+          method: 'POST',
+          body: formData,
+        }),
+      })
+      await router.invalidate()
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50">
@@ -54,17 +69,17 @@ export function ProductRow({
           >
             Edit
           </button>
-          <fetcher.Form method="post" className="inline">
+          <form onSubmit={handleDelete} className="inline">
             <input type="hidden" name="intent" value={Intent.Delete} />
             <input type="hidden" name="id" value={product.id} />
             <button
               type="submit"
-              disabled={fetcher.state !== 'idle'}
+              disabled={isDeleting}
               className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600 disabled:opacity-50"
             >
-              {fetcher.state !== 'idle' ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
-          </fetcher.Form>
+          </form>
         </div>
       </td>
     </tr>
@@ -115,33 +130,39 @@ export function ProductTable({
 }
 
 export function SearchBar() {
-  const [searchParams] = useSearchParams()
-  const submit = useSubmit()
-  const search = searchParams.get('search') ?? ''
-  const inStockOnly = searchParams.get('inStockOnly') === 'true'
+  const search = productRoute.useSearch()
+  const navigate = productRoute.useNavigate()
+
+  function handleChange(updates: Record<string, unknown>) {
+    navigate({
+      search: (prev) => ({ ...prev, ...updates }),
+    })
+  }
 
   return (
-    <Form method="get" className="mb-4 flex items-center gap-4">
+    <form
+      className="mb-4 flex items-center gap-4"
+      onSubmit={(e) => e.preventDefault()}
+    >
       <input
         type="text"
         name="search"
-        value={search}
+        value={search.search}
         placeholder="Search..."
-        onChange={(e) => submit(e.target.form)}
+        onChange={(e) => handleChange({ search: e.target.value })}
         className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
       />
       <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
           name="inStockOnly"
-          value="true"
-          checked={inStockOnly}
-          onChange={(e) => submit(e.target.form)}
+          checked={search.inStockOnly}
+          onChange={(e) => handleChange({ inStockOnly: e.target.checked })}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         Only show products in stock
       </label>
-    </Form>
+    </form>
   )
 }
 
@@ -164,37 +185,44 @@ export function ProductForm({
   const nameId = useId()
   const categoryId = useId()
   const priceId = useId()
-  const fetcher = useFetcher()
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const form = useForm({
     defaultValues: product ?? emptyProduct,
     validators: {
       onChange: baseProductSchema,
     },
     onSubmit: async ({ value }: { value: ProductInput }) => {
-      const data = new FormData()
-      data.append('intent', product ? Intent.Update : Intent.Create)
-      if (product) {
-        data.append('id', product.id)
+      setIsSubmitting(true)
+      try {
+        const data = new FormData()
+        data.append('intent', product ? Intent.Update : Intent.Create)
+        if (product) {
+          data.append('id', product.id)
+        }
+        data.append('name', value.name)
+        data.append('category', value.category)
+        data.append('price', value.price)
+        if (value.stocked) {
+          data.append('stocked', 'on')
+        }
+        await action({
+          request: new Request('http://localhost', {
+            method: 'POST',
+            body: data,
+          }),
+        })
+        await router.invalidate()
+        onSuccess?.()
+      } finally {
+        setIsSubmitting(false)
       }
-      data.append('name', value.name)
-      data.append('category', value.category)
-      data.append('price', value.price)
-      if (value.stocked) {
-        data.append('stocked', 'on')
-      }
-      fetcher.submit(data, { method: 'post' })
     },
   })
 
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      onSuccess?.()
-    }
-  }, [fetcher.data, fetcher.state, onSuccess])
-
   return (
     <form
-      method="post"
       onSubmit={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -205,12 +233,6 @@ export function ProductForm({
       <h3 className="mb-3 text-sm font-semibold text-gray-700">
         {product ? 'Edit Product' : 'Add New Product'}
       </h3>
-      <input
-        type="hidden"
-        name="intent"
-        value={product ? Intent.Update : Intent.Create}
-      />
-      {product && <input type="hidden" name="id" value={product.id} />}
       <div className="grid grid-cols-2 gap-4">
         <form.Field name="name">
           {(field) => (
@@ -337,14 +359,10 @@ export function ProductForm({
         </button>
         <button
           type="submit"
-          disabled={fetcher.state !== 'idle'}
+          disabled={isSubmitting}
           className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
         >
-          {fetcher.state !== 'idle'
-            ? 'Saving...'
-            : product
-              ? 'Update'
-              : 'Create'}
+          {isSubmitting ? 'Saving...' : product ? 'Update' : 'Create'}
         </button>
       </div>
     </form>
@@ -352,7 +370,7 @@ export function ProductForm({
 }
 
 export function FilterableProductTable() {
-  const products = useLoaderData<Product[]>()
+  const products = productRoute.useLoaderData() as Product[]
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [showForm, setShowForm] = useState(false)
 

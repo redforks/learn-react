@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from '@tanstack/react-router'
 
 export default function Home() {
   return (
@@ -17,7 +17,11 @@ export default function Home() {
             </Link>
           </li>
           <li>
-            <Link to="/product-table" className="text-blue-600 hover:underline">
+            <Link
+              to="/product-table"
+              search={{ search: '', inStockOnly: false }}
+              className="text-blue-600 hover:underline"
+            >
               Product Table
             </Link>
           </li>

@@ -1,6 +1,12 @@
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createRoutesStub, useLocation } from 'react-router-dom'
 import {
   afterAll,
   afterEach,
@@ -10,16 +16,15 @@ import {
   it,
   vi,
 } from 'vitest'
+import { routeTree } from '../../routes'
 import {
-  FilterableProductTable,
   ProductCategoryRow,
   ProductForm,
   ProductRow,
   ProductTable,
-  SearchBar,
 } from './components'
-import { action, loader } from './data'
 import { resetProducts, server } from './mocks'
+import { productRoute } from './route'
 
 beforeAll(() => server.listen())
 
@@ -29,6 +34,25 @@ afterEach(() => {
 })
 
 afterAll(() => server.close())
+
+function renderWithRouter(
+  ui: React.ReactElement,
+  initialUrl = '/product-table',
+) {
+  const rootRoute = createRootRoute()
+  const indexRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/product-table',
+    component: () => ui,
+    validateSearch: productRoute.options.validateSearch,
+  })
+
+  const customTree = rootRoute.addChildren([indexRoute])
+  const history = createMemoryHistory({ initialEntries: [initialUrl] })
+  const router = createRouter({ routeTree: customTree, history })
+
+  return render(<RouterProvider router={router} />)
+}
 
 describe('ProductCategoryRow', () => {
   it('renders category name as table header with colSpan=3', () => {
@@ -54,17 +78,7 @@ describe('ProductRow', () => {
     name: 'Apple',
   }
 
-  function renderWithRouter(ui: React.ReactElement) {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: () => ui,
-      },
-    ])
-    return render(<Stub initialEntries={['/']} />)
-  }
-
-  it('renders product details and actions', () => {
+  it('renders product details and actions', async () => {
     renderWithRouter(
       <table>
         <tbody>
@@ -73,13 +87,13 @@ describe('ProductRow', () => {
       </table>,
     )
 
-    expect(screen.getByText('Apple')).toBeInTheDocument()
+    expect(await screen.findByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('$1')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
   })
 
-  it('renders out-of-stock product in red text', () => {
+  it('renders out-of-stock product in red text', async () => {
     const product = {
       id: '3',
       category: 'Fruits',
@@ -95,11 +109,12 @@ describe('ProductRow', () => {
       </table>,
     )
 
+    await screen.findByText('Passionfruit')
     const nameSpan = container.querySelector('span')
     expect(nameSpan).toHaveClass('text-red-500')
   })
 
-  it('calls onEdit when Edit button is clicked', () => {
+  it('calls onEdit when Edit button is clicked', async () => {
     const onEdit = vi.fn()
     renderWithRouter(
       <table>
@@ -109,31 +124,21 @@ describe('ProductRow', () => {
       </table>,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
     expect(onEdit).toHaveBeenCalledWith(mockProduct)
   })
 })
 
 describe('ProductTable', () => {
-  function renderWithRouter(ui: React.ReactElement) {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: () => ui,
-      },
-    ])
-    return render(<Stub initialEntries={['/']} />)
-  }
-
-  it('renders table with name, price and actions headers', () => {
+  it('renders table with name, price and actions headers', async () => {
     renderWithRouter(<ProductTable products={[]} onEdit={() => {}} />)
 
-    expect(screen.getByText('Name')).toBeInTheDocument()
+    expect(await screen.findByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
     expect(screen.getByText('Actions')).toBeInTheDocument()
   })
 
-  it('renders products grouped by category', () => {
+  it('renders products grouped by category', async () => {
     const products = [
       {
         id: '1',
@@ -159,22 +164,22 @@ describe('ProductTable', () => {
     ]
     renderWithRouter(<ProductTable products={products} onEdit={() => {}} />)
 
-    expect(screen.getByText('Fruits')).toBeInTheDocument()
+    expect(await screen.findByText('Fruits')).toBeInTheDocument()
     expect(screen.getByText('Vegetables')).toBeInTheDocument()
     expect(screen.getByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('Banana')).toBeInTheDocument()
     expect(screen.getByText('Carrot')).toBeInTheDocument()
   })
 
-  it('renders empty table when no products', () => {
+  it('renders empty table when no products', async () => {
     renderWithRouter(<ProductTable products={[]} onEdit={() => {}} />)
 
-    expect(screen.getByText('Name')).toBeInTheDocument()
+    expect(await screen.findByText('Name')).toBeInTheDocument()
     expect(screen.getByText('Price')).toBeInTheDocument()
     expect(screen.queryByText('Apple')).not.toBeInTheDocument()
   })
 
-  it('renders only category header once per category', () => {
+  it('renders only category header once per category', async () => {
     const products = [
       {
         id: '1',
@@ -195,6 +200,7 @@ describe('ProductTable', () => {
       <ProductTable products={products} onEdit={() => {}} />,
     )
 
+    await screen.findByText('Fruits')
     const categoryHeaders = container.querySelectorAll('th[colSpan="3"]')
     expect(categoryHeaders).toHaveLength(1)
   })
@@ -202,133 +208,107 @@ describe('ProductTable', () => {
 
 describe('SearchBar', () => {
   function renderWithUrl(initialUrl: string) {
-    function SearchSpy() {
-      const { search } = useLocation()
-      return <div data-testid="search">{search}</div>
-    }
+    const history = createMemoryHistory({ initialEntries: [initialUrl] })
+    const router = createRouter({ routeTree, history })
 
-    function WithSpy() {
-      return (
-        <>
-          <SearchBar />
-          <SearchSpy />
-        </>
-      )
-    }
-
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: WithSpy,
-      },
-    ])
-    render(<Stub initialEntries={[initialUrl]} />)
+    render(<RouterProvider router={router} />)
+    return router
   }
 
-  it('renders search input and checkbox', () => {
-    renderWithUrl('/')
+  it('renders search input and checkbox', async () => {
+    renderWithUrl('/product-table')
 
-    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument()
+    expect(await screen.findByPlaceholderText('Search...')).toBeInTheDocument()
     expect(
       screen.getByRole('checkbox', { name: /only show products in stock/i }),
     ).toBeInTheDocument()
   })
 
-  it('displays search value from URL params', () => {
-    renderWithUrl('/?search=dragon')
+  it('displays search value from URL params', async () => {
+    renderWithUrl('/product-table?search=dragon')
 
-    const input = screen.getByPlaceholderText('Search...') as HTMLInputElement
+    const input = (await screen.findByPlaceholderText(
+      'Search...',
+    )) as HTMLInputElement
     expect(input.value).toBe('dragon')
   })
 
-  it('displays checked checkbox when inStockOnly is in URL', () => {
-    renderWithUrl('/?inStockOnly=true')
+  it('displays checked checkbox when inStockOnly is in URL', async () => {
+    renderWithUrl('/product-table?inStockOnly=true')
 
-    const checkbox = screen.getByRole('checkbox', {
+    const checkbox = (await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
-    }) as HTMLInputElement
+    })) as HTMLInputElement
     expect(checkbox.checked).toBe(true)
   })
 
-  it('displays unchecked checkbox when inStockOnly is not in URL', () => {
-    renderWithUrl('/')
+  it('displays unchecked checkbox when inStockOnly is not in URL', async () => {
+    renderWithUrl('/product-table')
 
-    const checkbox = screen.getByRole('checkbox', {
+    const checkbox = (await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
-    }) as HTMLInputElement
+    })) as HTMLInputElement
     expect(checkbox.checked).toBe(false)
   })
 
-  it('updates URL search param when typing in search input', () => {
-    renderWithUrl('/')
+  it('updates URL search param when typing in search input', async () => {
+    const router = renderWithUrl('/product-table')
 
-    const input = screen.getByPlaceholderText('Search...')
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: 'apple' } })
 
-    expect(screen.getByTestId('search')).toHaveTextContent('?search=apple')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).toContain('search=apple')
+    })
   })
 
-  it('removes search param from URL when input is cleared', () => {
-    renderWithUrl('/?search=apple')
+  it('removes search param from URL when input is cleared', async () => {
+    const router = renderWithUrl('/product-table?search=apple')
 
-    const input = screen.getByPlaceholderText('Search...')
+    const input = await screen.findByPlaceholderText('Search...')
     fireEvent.change(input, { target: { value: '' } })
 
-    expect(screen.getByTestId('search')).toHaveTextContent('?search=')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).not.toContain('search=apple')
+    })
   })
 
-  it('adds inStockOnly param to URL when checkbox is checked', () => {
-    renderWithUrl('/')
+  it('adds inStockOnly param to URL when checkbox is checked', async () => {
+    const router = renderWithUrl('/product-table')
 
-    const checkbox = screen.getByRole('checkbox', {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
     fireEvent.click(checkbox)
 
-    expect(screen.getByTestId('search')).toHaveTextContent(
-      '?search=&inStockOnly=true',
-    )
+    await waitFor(() => {
+      expect(router.state.location.searchStr).toContain('inStockOnly=true')
+    })
   })
 
-  it('removes inStockOnly param from URL when checkbox is unchecked', () => {
-    renderWithUrl('/?inStockOnly=true')
+  it('removes inStockOnly param from URL when checkbox is unchecked', async () => {
+    const router = renderWithUrl('/product-table?inStockOnly=true')
 
-    const checkbox = screen.getByRole('checkbox', {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
     fireEvent.click(checkbox)
 
-    expect(screen.getByTestId('search')).toHaveTextContent('?search=')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).not.toContain('inStockOnly=true')
+    })
   })
 })
 
 describe('ProductForm', () => {
-  function renderWithRouter(form: React.ReactElement) {
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: () => form,
-      },
-    ])
-    return render(<Stub initialEntries={['/']} />)
-  }
+  it('renders form with empty fields and create action for new product', async () => {
+    renderWithRouter(<ProductForm product={null} onCancel={() => {}} />)
 
-  it('renders form with empty fields and create action for new product', () => {
-    const { container } = renderWithRouter(
-      <ProductForm product={null} onCancel={() => {}} />,
-    )
-
-    expect(screen.getByText('Add New Product')).toBeInTheDocument()
+    expect(await screen.findByText('Add New Product')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument()
-
-    const actionInput = container.querySelector(
-      'input[name="intent"]',
-    ) as HTMLInputElement
-    expect(actionInput).toBeTruthy()
-    expect(actionInput.value).toBe('create')
   })
 
-  it('renders form with product data and update action for editing', () => {
+  it('renders form with product data and update action for editing', async () => {
     const product = {
       id: '1',
       category: 'Fruits',
@@ -336,45 +316,30 @@ describe('ProductForm', () => {
       stocked: true,
       name: 'Apple',
     }
-    const { container } = renderWithRouter(
-      <ProductForm product={product} onCancel={() => {}} />,
-    )
+    renderWithRouter(<ProductForm product={product} onCancel={() => {}} />)
 
-    expect(screen.getByText('Edit Product')).toBeInTheDocument()
+    expect(await screen.findByText('Edit Product')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument()
-
-    const actionInput = container.querySelector(
-      'input[name="intent"]',
-    ) as HTMLInputElement
-    expect(actionInput).toBeTruthy()
-    expect(actionInput.value).toBe('update')
   })
 
-  it('calls onCancel when Cancel button is clicked', () => {
+  it('calls onCancel when Cancel button is clicked', async () => {
     const onCancel = vi.fn()
     renderWithRouter(<ProductForm product={null} onCancel={onCancel} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }))
     expect(onCancel).toHaveBeenCalled()
   })
 })
 
 describe('FilterableProductTable', () => {
-  function createStub() {
-    return createRoutesStub([
-      {
-        path: '/',
-        Component: FilterableProductTable,
-        HydrateFallback: () => null,
-        loader,
-        action,
-      },
-    ])
+  function renderApp(initialUrl = '/product-table') {
+    const history = createMemoryHistory({ initialEntries: [initialUrl] })
+    const router = createRouter({ routeTree, history })
+    return render(<RouterProvider router={router} />)
   }
 
   it('renders all products and Add Product button by default', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     expect(await screen.findByText('Apple')).toBeInTheDocument()
     expect(screen.getByText('Dragonfruit')).toBeInTheDocument()
@@ -389,8 +354,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('shows form when Add Product button is clicked', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     await screen.findByText('Apple')
     fireEvent.click(screen.getByRole('button', { name: 'Add Product' }))
@@ -402,8 +366,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('shows edit form with product data when Edit button is clicked', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     await screen.findByText('Apple')
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0])
@@ -414,8 +377,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('hides form and clears editing state when Cancel is clicked', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     await screen.findByText('Apple')
     fireEvent.click(screen.getByRole('button', { name: 'Add Product' }))
@@ -430,8 +392,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('hides edit form and clears editing state when Cancel is clicked', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     await screen.findByText('Apple')
     fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0])
@@ -446,8 +407,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('deletes a product when Delete button is clicked', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load and verify Apple exists
     expect(await screen.findByText('Apple')).toBeInTheDocument()
@@ -458,12 +418,13 @@ describe('FilterableProductTable', () => {
 
     // Wait for delete to complete - Apple should be gone
     await screen.findByText('Deleting...')
-    expect(screen.queryByText('Apple')).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByText('Apple')).not.toBeInTheDocument(),
+    )
   })
 
   it('adds a new product when form is submitted', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -494,8 +455,7 @@ describe('FilterableProductTable', () => {
   })
 
   it('updates a product when edit form is submitted', async () => {
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -526,22 +486,15 @@ describe('FilterableProductTable', () => {
 })
 
 describe('FilterableProductTable with userEvent', () => {
-  function createStub() {
-    return createRoutesStub([
-      {
-        path: '/',
-        Component: FilterableProductTable,
-        HydrateFallback: () => null,
-        loader,
-        action,
-      },
-    ])
+  function renderApp(initialUrl = '/product-table') {
+    const history = createMemoryHistory({ initialEntries: [initialUrl] })
+    const router = createRouter({ routeTree, history })
+    return render(<RouterProvider router={router} />)
   }
 
   it('shows validation errors when submitting empty form', async () => {
     const user = userEvent.setup()
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -562,8 +515,7 @@ describe('FilterableProductTable with userEvent', () => {
 
   it('adds a new product using userEvent.type and userEvent.click', async () => {
     const user = userEvent.setup()
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -593,8 +545,7 @@ describe('FilterableProductTable with userEvent', () => {
 
   it('updates a product using userEvent for input and click', async () => {
     const user = userEvent.setup()
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -625,8 +576,7 @@ describe('FilterableProductTable with userEvent', () => {
 
   it('deletes a product using userEvent.click', async () => {
     const user = userEvent.setup()
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     expect(await screen.findByText('Apple')).toBeInTheDocument()
@@ -646,8 +596,7 @@ describe('FilterableProductTable with userEvent', () => {
 
   it('cancels form using userEvent.click', async () => {
     const user = userEvent.setup()
-    const Stub = createStub()
-    render(<Stub initialEntries={['/']} />)
+    renderApp()
 
     // Wait for products to load
     await screen.findByText('Apple')
@@ -674,65 +623,56 @@ describe('FilterableProductTable with userEvent', () => {
 
 describe('SearchBar with userEvent', () => {
   function renderWithUrl(initialUrl: string) {
-    function SearchSpy() {
-      const { search } = useLocation()
-      return <div data-testid="search">{search}</div>
-    }
+    const history = createMemoryHistory({ initialEntries: [initialUrl] })
+    const router = createRouter({ routeTree, history })
 
-    function WithSpy() {
-      return (
-        <>
-          <SearchBar />
-          <SearchSpy />
-        </>
-      )
-    }
-
-    const Stub = createRoutesStub([
-      {
-        path: '/',
-        Component: WithSpy,
-      },
-    ])
-    render(<Stub initialEntries={[initialUrl]} />)
+    render(<RouterProvider router={router} />)
+    return router
   }
 
   it('types in search input using userEvent.type', async () => {
     const user = userEvent.setup()
-    renderWithUrl('/')
+    const router = renderWithUrl('/product-table')
 
-    const input = screen.getByPlaceholderText('Search...')
+    const input = await screen.findByPlaceholderText('Search...')
     await user.type(input, 'apple')
 
-    expect(screen.getByTestId('search')).toHaveTextContent('search=apple')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).toContain('search=apple')
+    })
   })
 
   it('clears search input using userEvent.clear', async () => {
     const user = userEvent.setup()
-    renderWithUrl('/?search=apple')
+    const router = renderWithUrl('/product-table?search=apple')
 
-    const input = screen.getByPlaceholderText('Search...')
+    const input = await screen.findByPlaceholderText('Search...')
     expect((input as HTMLInputElement).value).toBe('apple')
 
     await user.clear(input)
 
-    expect(screen.getByTestId('search')).toHaveTextContent('search=')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).not.toContain('search=apple')
+    })
   })
 
   it('toggles checkbox using userEvent.click', async () => {
     const user = userEvent.setup()
-    renderWithUrl('/')
+    const router = renderWithUrl('/product-table')
 
-    const checkbox = screen.getByRole('checkbox', {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
     expect((checkbox as HTMLInputElement).checked).toBe(false)
 
     await user.click(checkbox)
-    expect(screen.getByTestId('search')).toHaveTextContent('inStockOnly=true')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).toContain('inStockOnly=true')
+    })
 
     await user.click(checkbox)
-    expect(screen.getByTestId('search')).toHaveTextContent('search=')
-    expect(screen.getByTestId('search')).not.toHaveTextContent('inStockOnly')
+    await waitFor(() => {
+      expect(router.state.location.searchStr).not.toContain('inStockOnly=true')
+    })
   })
 })

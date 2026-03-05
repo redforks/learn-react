@@ -1,7 +1,9 @@
-import type { RouteObject } from 'react-router-dom'
+import { createRoute } from '@tanstack/react-router'
+import { rootRoute } from '../../routes'
 import { Game } from './components'
 
-export default {
-  path: 'tic-tac-toe',
-  Component: Game,
-} as const satisfies RouteObject
+export const ticTacToeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/tic-tac-toe',
+  component: Game,
+})

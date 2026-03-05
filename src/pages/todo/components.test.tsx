@@ -1,10 +1,13 @@
+import {
+  createMemoryHistory,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createRoutesStub } from 'react-router-dom'
-import { afterAll, afterEach, beforeAll } from 'vitest'
-import { Todo } from './components'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { routeTree } from '../../routes'
 import type { TodoItem } from './data'
-import { action, loader } from './data'
 import { resetTodos, server } from './mocks'
 
 beforeAll(() => server.listen())
@@ -19,17 +22,10 @@ afterAll(() => server.close())
 function renderTodo(initialTodos: TodoItem[] = []) {
   resetTodos(initialTodos)
 
-  const Stub = createRoutesStub([
-    {
-      path: '/',
-      Component: Todo,
-      HydrateFallback: () => null,
-      loader,
-      action,
-    },
-  ])
+  const history = createMemoryHistory({ initialEntries: ['/todo'] })
+  const router = createRouter({ routeTree, history })
 
-  return render(<Stub initialEntries={['/']} />)
+  return render(<RouterProvider router={router} />)
 }
 
 describe('Todo', () => {

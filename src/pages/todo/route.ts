@@ -1,10 +1,11 @@
-import type { RouteObject } from 'react-router-dom'
+import { createRoute } from '@tanstack/react-router'
+import { rootRoute } from '../../routes'
 import { Todo } from './components'
-import { action, loader } from './data'
+import { loader } from './data'
 
-export default {
-  path: 'todo',
-  Component: Todo,
-  loader,
-  action,
-} as const satisfies RouteObject
+export const todoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/todo',
+  component: Todo,
+  loader: () => loader(),
+})

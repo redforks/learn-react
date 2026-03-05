@@ -1,10 +1,11 @@
+import { useRouter } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
-import { useFetcher, useLoaderData, useSubmit } from 'react-router-dom'
 import type { TodoItem } from './data'
-import { countRemaining, Intent } from './data'
+import { action, countRemaining, Intent } from './data'
+import { todoRoute } from './route'
 
 export function Todo() {
-  const todos = useLoaderData<TodoItem[]>()
+  const todos = todoRoute.useLoaderData() as TodoItem[]
   const remaining = countRemaining(todos)
 
   return (
@@ -36,62 +37,56 @@ export function Todo() {
 
 function AddTodoForm() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const fetcher = useFetcher()
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Clear input after successful submission
-  if (fetcher.state === 'idle' && fetcher.data && inputRef.current) {
-    inputRef.current.value = ''
-  }
-
-  function handleSubmit(e: React.SyntheticEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     const trimmed = inputRef.current?.value.trim()
-    if (!trimmed) {
-      e.preventDefault()
+    if (!trimmed) return
+
+    setIsSubmitting(true)
+    const formData = new FormData(e.currentTarget)
+    try {
+      await action({
+        request: new Request('http://localhost', {
+          method: 'POST',
+          body: formData,
+        }),
+      })
+      if (inputRef.current) inputRef.current.value = ''
+      await router.invalidate()
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <fetcher.Form
-      method="post"
-      className="flex gap-2 mb-6"
-      onSubmit={handleSubmit}
-    >
+    <form className="flex gap-2 mb-6" onSubmit={handleSubmit}>
       <input type="hidden" name="intent" value={Intent.Create} />
       <input
         ref={inputRef}
         type="text"
         name="text"
+        disabled={isSubmitting}
         placeholder="What needs to be done?"
         className="flex-1 border border-zinc-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <button
         type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+        disabled={isSubmitting}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
       >
         Add
       </button>
-    </fetcher.Form>
+    </form>
   )
 }
 
 function TodoItemRow({ todo }: { todo: TodoItem }) {
   const [isEditing, setIsEditing] = useState(false)
   const editInputRef = useRef<HTMLInputElement>(null)
-  const processedDataRef = useRef<unknown>(null)
-  const toggleFetcher = useFetcher()
-  const actionFetcher = useFetcher()
-  const submit = useSubmit()
-
-  // Exit edit mode after successful save (only once per fetcher response)
-  if (
-    actionFetcher.state === 'idle' &&
-    actionFetcher.data &&
-    actionFetcher.data !== processedDataRef.current &&
-    isEditing
-  ) {
-    processedDataRef.current = actionFetcher.data
-    setIsEditing(false)
-  }
+  const router = useRouter()
 
   function handleStartEditing() {
     setIsEditing(true)
@@ -101,25 +96,47 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
     setIsEditing(false)
   }
 
+  async function handleAction(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    await action({
+      request: new Request('http://localhost', {
+        method: 'POST',
+        body: formData,
+      }),
+    })
+    setIsEditing(false)
+    await router.invalidate()
+  }
+
+  async function handleToggle() {
+    if (isEditing) setIsEditing(false)
+    const formData = new FormData()
+    formData.append('id', String(todo.id))
+    formData.append('intent', Intent.Toggle)
+    await action({
+      request: new Request('http://localhost', {
+        method: 'POST',
+        body: formData,
+      }),
+    })
+    await router.invalidate()
+  }
+
   return (
     <li className="flex items-center gap-3 border border-zinc-200 rounded px-3 py-2 group">
-      {/* Toggle form */}
-      <toggleFetcher.Form method="post" className="contents">
-        <input type="hidden" name="id" value={todo.id} />
-        <input type="hidden" name="intent" value={Intent.Toggle} />
+      {/* Toggle */}
+      <div className="contents">
         <input
           type="checkbox"
           checked={todo.completed}
-          onChange={(e) => {
-            if (isEditing) cancelEditing()
-            submit(e.target.form)
-          }}
+          onChange={handleToggle}
           className="size-4 accent-blue-500"
         />
-      </toggleFetcher.Form>
+      </div>
 
       {/* Edit/Delete form */}
-      <actionFetcher.Form method="post" className="contents">
+      <form onSubmit={handleAction} className="contents">
         <input type="hidden" name="id" value={todo.id} />
         <input
           type="hidden"
@@ -176,7 +193,7 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
             </button>
           </>
         )}
-      </actionFetcher.Form>
+      </form>
     </li>
   )
 }

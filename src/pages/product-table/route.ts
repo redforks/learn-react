@@ -1,10 +1,23 @@
-import type { RouteObject } from 'react-router-dom'
+import { createRoute } from '@tanstack/react-router'
+import { rootRoute } from '../../routes'
 import { FilterableProductTable } from './components'
-import { action, loader } from './data'
+import { loader } from './data'
 
-export default {
-  path: 'product-table',
-  Component: FilterableProductTable,
-  loader,
-  action,
-} as const satisfies RouteObject
+export const productRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/product-table',
+  component: FilterableProductTable,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      search: (search.search as string) || '',
+      inStockOnly: search.inStockOnly === 'true' || search.inStockOnly === true,
+    }
+  },
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => {
+    const url = new URL('http://localhost')
+    if (deps.search) url.searchParams.set('search', deps.search)
+    if (deps.inStockOnly) url.searchParams.set('inStockOnly', 'true')
+    return loader({ request: new Request(url) })
+  },
+})
