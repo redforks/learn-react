@@ -44,12 +44,7 @@ export type ProductInput = Omit<Product, 'id'>
 
 const api = ky.create({ prefixUrl: '/api/products' })
 
-export async function loader({
-  request,
-}: {
-  request: Request
-}): Promise<Product[]> {
-  const { searchParams } = new URL(request.url)
+export async function loader(searchParams: string): Promise<Product[]> {
   const products = await api.get('', { searchParams }).json<Product[]>()
   return products.sort(
     (a, b) => a.category.localeCompare(b.category) || a.id.localeCompare(b.id),
