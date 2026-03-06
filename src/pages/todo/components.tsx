@@ -1,7 +1,13 @@
 import { useRouter } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import type { TodoItem } from './data'
-import { action, countRemaining, Intent } from './data'
+import {
+  countRemaining,
+  createAction,
+  deleteAction,
+  toggleAction,
+  updateAction,
+} from './data'
 import { todoRoute } from './route'
 
 export function Todo() {
@@ -48,12 +54,7 @@ function AddTodoForm() {
     setIsSubmitting(true)
     const formData = new FormData(e.currentTarget)
     try {
-      await action({
-        request: new Request('http://localhost', {
-          method: 'POST',
-          body: formData,
-        }),
-      })
+      await createAction(formData)
       if (inputRef.current) inputRef.current.value = ''
       await router.invalidate()
     } finally {
@@ -63,7 +64,6 @@ function AddTodoForm() {
 
   return (
     <form className="flex gap-2 mb-6" onSubmit={handleSubmit}>
-      <input type="hidden" name="intent" value={Intent.Create} />
       <input
         ref={inputRef}
         type="text"
@@ -96,15 +96,17 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
     setIsEditing(false)
   }
 
-  async function handleAction(e: React.FormEvent<HTMLFormElement>) {
+  async function handleDelete() {
+    const formData = new FormData()
+    formData.append('id', String(todo.id))
+    await deleteAction(formData)
+    await router.invalidate()
+  }
+
+  async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    await action({
-      request: new Request('http://localhost', {
-        method: 'POST',
-        body: formData,
-      }),
-    })
+    await updateAction(formData)
     setIsEditing(false)
     await router.invalidate()
   }
@@ -113,13 +115,7 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
     if (isEditing) setIsEditing(false)
     const formData = new FormData()
     formData.append('id', String(todo.id))
-    formData.append('intent', Intent.Toggle)
-    await action({
-      request: new Request('http://localhost', {
-        method: 'POST',
-        body: formData,
-      }),
-    })
+    await toggleAction(formData)
     await router.invalidate()
   }
 
@@ -136,15 +132,9 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
       </div>
 
       {/* Edit/Delete form */}
-      <form onSubmit={handleAction} className="contents">
-        <input type="hidden" name="id" value={todo.id} />
-        <input
-          type="hidden"
-          name="intent"
-          value={isEditing ? Intent.Update : Intent.Delete}
-        />
-
-        {isEditing ? (
+      {isEditing ? (
+        <form onSubmit={handleUpdate} className="contents">
+          <input type="hidden" name="id" value={todo.id} />
           <div className="flex-1 flex gap-2">
             <input
               ref={editInputRef}
@@ -171,29 +161,30 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
               Cancel
             </button>
           </div>
-        ) : (
-          <>
-            <span
-              className={`flex-1 ${todo.completed ? 'line-through text-zinc-400' : ''}`}
-            >
-              {todo.text}
-            </span>
-            <button
-              type="button"
-              onClick={handleStartEditing}
-              className="text-sm text-zinc-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              Edit
-            </button>
-            <button
-              type="submit"
-              className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              Delete
-            </button>
-          </>
-        )}
-      </form>
+        </form>
+      ) : (
+        <form onSubmit={handleDelete} className="contents">
+          <input type="hidden" name="id" value={todo.id} />
+          <span
+            className={`flex-1 ${todo.completed ? 'line-through text-zinc-400' : ''}`}
+          >
+            {todo.text}
+          </span>
+          <button
+            type="button"
+            onClick={handleStartEditing}
+            className="text-sm text-zinc-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            Edit
+          </button>
+          <button
+            type="submit"
+            className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            Delete
+          </button>
+        </form>
+      )}
     </li>
   )
 }

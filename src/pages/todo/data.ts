@@ -20,22 +20,18 @@ export function countRemaining(todos: TodoItem[]): number {
 }
 
 const createSchema = zfd.formData({
-  intent: zfd.text(z.literal(Intent.Create)),
   text: zfd.text(z.string().trim().min(1)),
 })
 
 const deleteSchema = zfd.formData({
-  intent: zfd.text(z.literal(Intent.Delete)),
   id: zfd.numeric(z.number().int().positive()),
 })
 
 const toggleSchema = zfd.formData({
-  intent: zfd.text(z.literal(Intent.Toggle)),
   id: zfd.numeric(z.number().int().positive()),
 })
 
 const updateSchema = zfd.formData({
-  intent: zfd.text(z.literal(Intent.Update)),
   id: zfd.numeric(z.number().int().positive()),
   text: zfd.text(z.string().trim().min(1)),
 })
@@ -46,34 +42,28 @@ export async function loader(): Promise<TodoItem[]> {
   return api.get('').json<TodoItem[]>()
 }
 
-export async function action({ request }: { request: Request }) {
-  const formData = await request.formData()
-  const intent = formData.get('intent')
+export async function createAction(formData: FormData) {
+  const result = createSchema.safeParse(formData)
+  if (!result.success) return
+  return api.post('', { json: { text: result.data.text } }).json<TodoItem>()
+}
 
-  switch (intent) {
-    case Intent.Create: {
-      const result = createSchema.safeParse(formData)
-      if (!result.success) return
-      return api.post('', { json: { text: result.data.text } }).json<TodoItem>()
-    }
-    case Intent.Delete: {
-      const result = deleteSchema.safeParse(formData)
-      if (!result.success) return
-      return api.delete(`${result.data.id}`).json<{ success: boolean }>()
-    }
-    case Intent.Toggle: {
-      const result = toggleSchema.safeParse(formData)
-      if (!result.success) return
-      return api.patch(`${result.data.id}/toggle`).json<TodoItem>()
-    }
-    case Intent.Update: {
-      const result = updateSchema.safeParse(formData)
-      if (!result.success) return
-      return api
-        .put(`${result.data.id}`, { json: { text: result.data.text } })
-        .json<TodoItem>()
-    }
-    default:
-      return
-  }
+export async function deleteAction(formData: FormData) {
+  const result = deleteSchema.safeParse(formData)
+  if (!result.success) return
+  return api.delete(`${result.data.id}`).json<{ success: boolean }>()
+}
+
+export async function toggleAction(formData: FormData) {
+  const result = toggleSchema.safeParse(formData)
+  if (!result.success) return
+  return api.patch(`${result.data.id}/toggle`).json<TodoItem>()
+}
+
+export async function updateAction(formData: FormData) {
+  const result = updateSchema.safeParse(formData)
+  if (!result.success) return
+  return api
+    .put(`${result.data.id}`, { json: { text: result.data.text } })
+    .json<TodoItem>()
 }
