@@ -2,13 +2,6 @@ import ky from 'ky'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
-export enum Intent {
-  Create = 'create',
-  Delete = 'delete',
-  Toggle = 'toggle',
-  Update = 'update',
-}
-
 export type TodoItem = {
   id: number
   text: string

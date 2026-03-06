@@ -2,11 +2,12 @@ import { useForm } from '@tanstack/react-form'
 import { useRouter } from '@tanstack/react-router'
 import { useId, useState } from 'react'
 import {
-  action,
   baseProductSchema,
-  Intent,
+  createAction,
+  deleteAction,
   type Product,
   type ProductInput,
+  updateAction,
 } from './data'
 import { productRoute } from './route'
 
@@ -44,12 +45,7 @@ export function ProductRow({
     setIsDeleting(true)
     const formData = new FormData(e.currentTarget)
     try {
-      await action({
-        request: new Request('http://localhost', {
-          method: 'POST',
-          body: formData,
-        }),
-      })
+      await deleteAction(formData)
       await router.invalidate()
     } finally {
       setIsDeleting(false)
@@ -70,7 +66,6 @@ export function ProductRow({
             Edit
           </button>
           <form onSubmit={handleDelete} className="inline">
-            <input type="hidden" name="intent" value={Intent.Delete} />
             <input type="hidden" name="id" value={product.id} />
             <button
               type="submit"
@@ -197,7 +192,6 @@ export function ProductForm({
       setIsSubmitting(true)
       try {
         const data = new FormData()
-        data.append('intent', product ? Intent.Update : Intent.Create)
         if (product) {
           data.append('id', product.id)
         }
@@ -207,12 +201,11 @@ export function ProductForm({
         if (value.stocked) {
           data.append('stocked', 'on')
         }
-        await action({
-          request: new Request('http://localhost', {
-            method: 'POST',
-            body: data,
-          }),
-        })
+        if (product) {
+          await updateAction(data)
+        } else {
+          await createAction(data)
+        }
         await router.invalidate()
         onSuccess?.()
       } finally {

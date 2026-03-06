@@ -2,12 +2,6 @@ import ky from 'ky'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
-export enum Intent {
-  Create = 'create',
-  Update = 'update',
-  Delete = 'delete',
-}
-
 export const baseProductSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category: z.string().min(1, 'Category is required'),
@@ -62,24 +56,17 @@ export async function loader({
   )
 }
 
-export async function action({
-  request,
-}: {
-  request: Request
-}): Promise<Response> {
-  const formData = await request.formData()
-  const intent = formData.get('intent')
+export async function createAction(formData: FormData) {
+  const product = createSchema.parse(formData)
+  return api.post('', { json: product }).json<Product>()
+}
 
-  if (intent === Intent.Create) {
-    const product = createSchema.parse(formData)
-    await api.post('', { json: product })
-  } else if (intent === Intent.Update) {
-    const product = updateSchema.parse(formData)
-    await api.put(product.id, { json: product })
-  } else if (intent === Intent.Delete) {
-    const { id } = deleteSchema.parse(formData)
-    await api.delete(id)
-  }
+export async function updateAction(formData: FormData) {
+  const product = updateSchema.parse(formData)
+  return api.put(product.id, { json: product }).json<Product>()
+}
 
-  return Response.json({ success: true })
+export async function deleteAction(formData: FormData) {
+  const { id } = deleteSchema.parse(formData)
+  return api.delete(id).json<{ success: boolean }>()
 }
