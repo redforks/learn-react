@@ -1,11 +1,11 @@
 import { createRoute } from '@tanstack/react-router'
-import { rootRoute } from '../../routes'
+import { layoutRoute } from '../../routes'
 import { FilterableProductTable } from './components'
 import { loader } from './data'
 
 export const productRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/product-table',
+  getParentRoute: () => layoutRoute,
+  path: 'product-table',
   component: FilterableProductTable,
   validateSearch: (search: Record<string, unknown>) => {
     return {
