@@ -46,7 +46,7 @@ function AddTodoForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     const trimmed = inputRef.current?.value.trim()
     if (!trimmed) return
@@ -103,7 +103,7 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
     await router.invalidate()
   }
 
-  async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
+  async function handleUpdate(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     await updateAction(formData)

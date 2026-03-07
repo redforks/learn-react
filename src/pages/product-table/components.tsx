@@ -40,7 +40,7 @@ export function ProductRow({
     </span>
   )
 
-  async function handleDelete(e: React.FormEvent<HTMLFormElement>) {
+  async function handleDelete(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setIsDeleting(true)
     const formData = new FormData(e.currentTarget)
