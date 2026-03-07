@@ -1,6 +1,10 @@
 import ky from 'ky'
 import { z } from 'zod'
-import { zfd } from 'zod-form-data'
+
+const checkboxTransform = z
+  .string()
+  .optional()
+  .transform((v) => v === 'on')
 
 export const baseProductSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -9,27 +13,23 @@ export const baseProductSchema = z.object({
   stocked: z.boolean(),
 })
 
-export const createSchema = zfd.formData(
-  z.object({
-    name: zfd.text(baseProductSchema.shape.name),
-    category: zfd.text(baseProductSchema.shape.category),
-    price: zfd.text(baseProductSchema.shape.price),
-    stocked: zfd.checkbox(),
-  }),
-)
+export const createSchema = z.object({
+  name: baseProductSchema.shape.name,
+  category: baseProductSchema.shape.category,
+  price: baseProductSchema.shape.price,
+  stocked: checkboxTransform,
+})
 
-export const updateSchema = zfd.formData(
-  z.object({
-    name: zfd.text(baseProductSchema.shape.name),
-    category: zfd.text(baseProductSchema.shape.category),
-    price: zfd.text(baseProductSchema.shape.price),
-    stocked: zfd.checkbox(),
-    id: zfd.text(),
-  }),
-)
+export const updateSchema = z.object({
+  id: z.string(),
+  name: baseProductSchema.shape.name,
+  category: baseProductSchema.shape.category,
+  price: baseProductSchema.shape.price,
+  stocked: checkboxTransform,
+})
 
-export const deleteSchema = zfd.formData({
-  id: zfd.text(),
+export const deleteSchema = z.object({
+  id: z.string(),
 })
 
 export type Product = {
@@ -52,16 +52,16 @@ export async function loader(searchParams: string): Promise<Product[]> {
 }
 
 export async function createAction(formData: FormData) {
-  const product = createSchema.parse(formData)
+  const product = createSchema.parse(Object.fromEntries(formData))
   return api.post('', { json: product }).json<Product>()
 }
 
 export async function updateAction(formData: FormData) {
-  const product = updateSchema.parse(formData)
+  const product = updateSchema.parse(Object.fromEntries(formData))
   return api.put(product.id, { json: product }).json<Product>()
 }
 
 export async function deleteAction(formData: FormData) {
-  const { id } = deleteSchema.parse(formData)
+  const { id } = deleteSchema.parse(Object.fromEntries(formData))
   return api.delete(id).json<{ success: boolean }>()
 }
