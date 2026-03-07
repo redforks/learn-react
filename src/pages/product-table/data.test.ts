@@ -13,28 +13,28 @@ afterAll(() => server.close())
 
 describe('loader', () => {
   it('returns all products when no search params', async () => {
-    const products = await loader('')
+    const products = await loader({ search: '', inStockOnly: false })
 
     expect(products).toHaveLength(6)
     expect(products[0].name).toBe('Apple')
   })
 
   it('filters products by search term', async () => {
-    const products = await loader('search=dragon')
+    const products = await loader({ search: 'dragon', inStockOnly: false })
 
     expect(products).toHaveLength(1)
     expect(products[0].name).toBe('Dragonfruit')
   })
 
   it('filters products by inStockOnly', async () => {
-    const products = await loader('inStockOnly=true')
+    const products = await loader({ search: '', inStockOnly: true })
 
     expect(products).toHaveLength(4)
     expect(products.every((p) => p.stocked)).toBe(true)
   })
 
   it('filters products by both search and inStockOnly', async () => {
-    const products = await loader('search=fruit&inStockOnly=true')
+    const products = await loader({ search: 'fruit', inStockOnly: true })
 
     // Dragonfruit is stocked and contains "fruit", Passionfruit contains "fruit" but is not stocked
     expect(products).toHaveLength(1)
@@ -42,7 +42,7 @@ describe('loader', () => {
   })
 
   it('sorts products by category then by id', async () => {
-    const products = await loader('')
+    const products = await loader({ search: '', inStockOnly: false })
 
     // Should be sorted by category first (Fruits before Vegetables), then by id
     expect(products.map((p) => `${p.category}:${p.id}`)).toEqual([

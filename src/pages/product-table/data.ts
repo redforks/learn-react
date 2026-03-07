@@ -44,7 +44,18 @@ export type ProductInput = Omit<Product, 'id'>
 
 const api = ky.create({ prefixUrl: '/api/products' })
 
-export async function loader(searchParams: string): Promise<Product[]> {
+export const searchSchema = z.object({
+  search: z.coerce.string().default(''),
+  inStockOnly: z.coerce.boolean().default(false),
+})
+
+type SearchParams = z.infer<typeof searchSchema>
+
+export async function loader({
+  search,
+  inStockOnly,
+}: SearchParams): Promise<Product[]> {
+  const searchParams = `search=${search}&inStockOnly=${inStockOnly}`
   const products = await api.get('', { searchParams }).json<Product[]>()
   return products.sort(
     (a, b) => a.category.localeCompare(b.category) || a.id.localeCompare(b.id),
