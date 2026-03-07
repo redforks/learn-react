@@ -43,9 +43,8 @@ export function ProductRow({
   async function handleDelete(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setIsDeleting(true)
-    const formData = new FormData(e.currentTarget)
     try {
-      await deleteAction(formData)
+      await deleteAction(product.id)
       await router.invalidate()
     } finally {
       setIsDeleting(false)
@@ -191,20 +190,10 @@ export function ProductForm({
     onSubmit: async ({ value }: { value: ProductInput }) => {
       setIsSubmitting(true)
       try {
-        const data = new FormData()
         if (product) {
-          data.append('id', product.id)
-        }
-        data.append('name', value.name)
-        data.append('category', value.category)
-        data.append('price', value.price)
-        if (value.stocked) {
-          data.append('stocked', 'on')
-        }
-        if (product) {
-          await updateAction(data)
+          await updateAction({ ...value, id: product.id })
         } else {
-          await createAction(data)
+          await createAction(value)
         }
         await router.invalidate()
         onSuccess?.()

@@ -62,17 +62,14 @@ export async function loader({
   )
 }
 
-export async function createAction(formData: FormData) {
-  const product = createSchema.parse(Object.fromEntries(formData))
+export async function createAction(product: ProductInput) {
   return api.post('', { json: product }).json<Product>()
 }
 
-export async function updateAction(formData: FormData) {
-  const product = updateSchema.parse(Object.fromEntries(formData))
+export async function updateAction(product: Product) {
   return api.put(product.id, { json: product }).json<Product>()
 }
 
-export async function deleteAction(formData: FormData) {
-  const { id } = deleteSchema.parse(Object.fromEntries(formData))
+export async function deleteAction(id: string) {
   return api.delete(id).json<{ success: boolean }>()
 }
