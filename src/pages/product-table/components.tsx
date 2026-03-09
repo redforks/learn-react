@@ -4,8 +4,13 @@ import { useId, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -135,27 +140,28 @@ export function SearchBar() {
   }
 
   return (
-    <form
-      className="flex items-center gap-4"
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <Input
-        name="search"
-        value={search.search}
-        placeholder="Search..."
-        onChange={(e) => handleChange({ search: e.target.value })}
-        className="w-64"
-      />
-      <Label className="flex items-center gap-2 cursor-pointer">
-        <Checkbox
-          checked={search.inStockOnly}
-          onCheckedChange={(checked) =>
-            handleChange({ inStockOnly: checked === true })
-          }
+    <FieldGroup className="flex flex-row items-center gap-4">
+      <Field>
+        <Input
+          name="search"
+          value={search.search}
+          placeholder="Search..."
+          onChange={(e) => handleChange({ search: e.target.value })}
+          className="w-64"
         />
-        Only show products in stock
-      </Label>
-    </form>
+      </Field>
+      <Field orientation="horizontal">
+        <FieldLabel className="cursor-pointer">
+          <Checkbox
+            checked={search.inStockOnly}
+            onCheckedChange={(checked) =>
+              handleChange({ inStockOnly: checked === true })
+            }
+          />
+          Only show products in stock
+        </FieldLabel>
+      </Field>
+    </FieldGroup>
   )
 }
 
@@ -175,11 +181,11 @@ export function ProductForm({
   onCancel: () => void
   onSuccess?: () => void
 }) {
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const nameId = useId()
   const categoryId = useId()
   const priceId = useId()
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm({
     defaultValues: product ?? emptyProduct,
@@ -214,67 +220,51 @@ export function ProductForm({
       <h3 className="mb-3 text-sm font-semibold">
         {product ? 'Edit Product' : 'Add New Product'}
       </h3>
-      <div className="grid grid-cols-2 gap-4">
+      <FieldGroup className="grid grid-cols-2 gap-4">
         <form.Field name="name">
           {(field) => (
-            <div>
-              <Label htmlFor={nameId} className="mb-1">
-                Name
-              </Label>
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel htmlFor={nameId}>Name</FieldLabel>
               <Input
                 id={nameId}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-destructive">
-                  {field.state.meta.errors
-                    .map((e) =>
-                      typeof e === 'string'
-                        ? e
-                        : (e as { message: string }).message,
-                    )
-                    .join(', ')}
-                </p>
-              )}
-            </div>
+              <FieldError
+                errors={field.state.meta.errors.map((e) =>
+                  typeof e === 'string' ? { message: e } : e,
+                )}
+              />
+            </Field>
           )}
         </form.Field>
         <form.Field name="category">
           {(field) => (
-            <div>
-              <Label htmlFor={categoryId} className="mb-1">
-                Category
-              </Label>
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel htmlFor={categoryId}>Category</FieldLabel>
               <Input
                 id={categoryId}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-destructive">
-                  {field.state.meta.errors
-                    .map((e) =>
-                      typeof e === 'string'
-                        ? e
-                        : (e as { message: string }).message,
-                    )
-                    .join(', ')}
-                </p>
-              )}
-            </div>
+              <FieldError
+                errors={field.state.meta.errors.map((e) =>
+                  typeof e === 'string' ? { message: e } : e,
+                )}
+              />
+            </Field>
           )}
         </form.Field>
         <form.Field name="price">
           {(field) => (
-            <div>
-              <Label htmlFor={priceId} className="mb-1">
-                Price
-              </Label>
+            <Field data-invalid={field.state.meta.errors.length > 0}>
+              <FieldLabel htmlFor={priceId}>Price</FieldLabel>
               <Input
                 id={priceId}
                 placeholder="1.00"
@@ -282,25 +272,20 @@ export function ProductForm({
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-destructive">
-                  {field.state.meta.errors
-                    .map((e) =>
-                      typeof e === 'string'
-                        ? e
-                        : (e as { message: string }).message,
-                    )
-                    .join(', ')}
-                </p>
-              )}
-            </div>
+              <FieldError
+                errors={field.state.meta.errors.map((e) =>
+                  typeof e === 'string' ? { message: e } : e,
+                )}
+              />
+            </Field>
           )}
         </form.Field>
         <form.Field name="stocked">
           {(field) => (
-            <div className="flex items-end">
-              <Label className="flex items-center gap-2 cursor-pointer">
+            <Field orientation="horizontal" className="items-end">
+              <FieldLabel className="cursor-pointer">
                 <Checkbox
                   name={field.name}
                   checked={field.state.value}
@@ -309,11 +294,11 @@ export function ProductForm({
                   }
                 />
                 In Stock
-              </Label>
-            </div>
+              </FieldLabel>
+            </Field>
           )}
         </form.Field>
-      </div>
+      </FieldGroup>
       <div className="mt-4 flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

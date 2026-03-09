@@ -12,7 +12,10 @@ function SunIcon({ className }: { className?: string }) {
       strokeWidth={1.5}
       stroke="currentColor"
       className={className}
+      role="img"
+      aria-label="Light mode"
     >
+      <title>Light mode</title>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -31,7 +34,10 @@ function MoonIcon({ className }: { className?: string }) {
       strokeWidth={1.5}
       stroke="currentColor"
       className={className}
+      role="img"
+      aria-label="Dark mode"
     >
+      <title>Dark mode</title>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
