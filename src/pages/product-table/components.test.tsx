@@ -236,19 +236,19 @@ describe('SearchBar', () => {
   it('displays checked checkbox when inStockOnly is in URL', async () => {
     renderWithUrl('/product-table?inStockOnly=true')
 
-    const checkbox = (await screen.findByRole('checkbox', {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
-    })) as HTMLInputElement
-    expect(checkbox.checked).toBe(true)
+    })
+    expect(checkbox).toBeChecked()
   })
 
   it('displays unchecked checkbox when inStockOnly is not in URL', async () => {
     renderWithUrl('/product-table')
 
-    const checkbox = (await screen.findByRole('checkbox', {
+    const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
-    })) as HTMLInputElement
-    expect(checkbox.checked).toBe(false)
+    })
+    expect(checkbox).not.toBeChecked()
   })
 
   it('updates URL search param when typing in search input', async () => {
@@ -663,7 +663,7 @@ describe('SearchBar with userEvent', () => {
     const checkbox = await screen.findByRole('checkbox', {
       name: /only show products in stock/i,
     })
-    expect((checkbox as HTMLInputElement).checked).toBe(false)
+    expect(checkbox).not.toBeChecked()
 
     await user.click(checkbox)
     await waitFor(() => {

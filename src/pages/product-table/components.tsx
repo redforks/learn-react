@@ -1,6 +1,19 @@
 import { useForm } from '@tanstack/react-form'
 import { useRouter } from '@tanstack/react-router'
 import { useId, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   baseProductSchema,
   createAction,
@@ -13,14 +26,11 @@ import { productRoute } from './route'
 
 export function ProductCategoryRow({ category }: { category: string }) {
   return (
-    <tr>
-      <th
-        colSpan={3}
-        className="bg-gray-100 px-4 py-2 text-center text-sm font-semibold text-gray-700"
-      >
+    <TableRow className="bg-muted/50">
+      <th colSpan={3} className="text-center font-semibold p-3">
         {category}
       </th>
-    </tr>
+    </TableRow>
   )
 }
 
@@ -52,31 +62,28 @@ export function ProductRow({
   }
 
   return (
-    <tr className="border-b border-gray-200 hover:bg-gray-50">
-      <td className="px-4 py-2 text-sm text-gray-900">{name}</td>
-      <td className="px-4 py-2 text-sm text-gray-600">${product.price}</td>
-      <td className="px-4 py-2 text-sm">
+    <TableRow>
+      <TableCell>{name}</TableCell>
+      <TableCell>${product.price}</TableCell>
+      <TableCell>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(product)}
-            className="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
-          >
+          <Button size="xs" variant="secondary" onClick={() => onEdit(product)}>
             Edit
-          </button>
+          </Button>
           <form onSubmit={handleDelete} className="inline">
             <input type="hidden" name="id" value={product.id} />
-            <button
+            <Button
               type="submit"
+              size="xs"
+              variant="destructive"
               disabled={isDeleting}
-              className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600 disabled:opacity-50"
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
-            </button>
+            </Button>
           </form>
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -104,22 +111,16 @@ export function ProductTable({
   })
 
   return (
-    <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-      <thead>
-        <tr className="border-b border-gray-200 bg-gray-50">
-          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-            Name
-          </th>
-          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-            Price
-          </th>
-          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Price</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>{rows}</TableBody>
+    </Table>
   )
 }
 
@@ -135,27 +136,25 @@ export function SearchBar() {
 
   return (
     <form
-      className="mb-4 flex items-center gap-4"
+      className="flex items-center gap-4"
       onSubmit={(e) => e.preventDefault()}
     >
-      <input
-        type="text"
+      <Input
         name="search"
         value={search.search}
         placeholder="Search..."
         onChange={(e) => handleChange({ search: e.target.value })}
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="w-64"
       />
-      <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
-        <input
-          type="checkbox"
-          name="inStockOnly"
+      <Label className="flex items-center gap-2 cursor-pointer">
+        <Checkbox
           checked={search.inStockOnly}
-          onChange={(e) => handleChange({ inStockOnly: e.target.checked })}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          onCheckedChange={(checked) =>
+            handleChange({ inStockOnly: checked === true })
+          }
         />
         Only show products in stock
-      </label>
+      </Label>
     </form>
   )
 }
@@ -210,32 +209,27 @@ export function ProductForm({
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
+      className="mb-4 rounded-lg border bg-muted/30 p-4"
     >
-      <h3 className="mb-3 text-sm font-semibold text-gray-700">
+      <h3 className="mb-3 text-sm font-semibold">
         {product ? 'Edit Product' : 'Add New Product'}
       </h3>
       <div className="grid grid-cols-2 gap-4">
         <form.Field name="name">
           {(field) => (
             <div>
-              <label
-                htmlFor={nameId}
-                className="mb-1 block text-xs text-gray-600"
-              >
+              <Label htmlFor={nameId} className="mb-1">
                 Name
-              </label>
-              <input
+              </Label>
+              <Input
                 id={nameId}
-                type="text"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
               />
               {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="mt-1 text-xs text-destructive">
                   {field.state.meta.errors
                     .map((e) =>
                       typeof e === 'string'
@@ -251,23 +245,18 @@ export function ProductForm({
         <form.Field name="category">
           {(field) => (
             <div>
-              <label
-                htmlFor={categoryId}
-                className="mb-1 block text-xs text-gray-600"
-              >
+              <Label htmlFor={categoryId} className="mb-1">
                 Category
-              </label>
-              <input
+              </Label>
+              <Input
                 id={categoryId}
-                type="text"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
               />
               {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="mt-1 text-xs text-destructive">
                   {field.state.meta.errors
                     .map((e) =>
                       typeof e === 'string'
@@ -283,24 +272,19 @@ export function ProductForm({
         <form.Field name="price">
           {(field) => (
             <div>
-              <label
-                htmlFor={priceId}
-                className="mb-1 block text-xs text-gray-600"
-              >
+              <Label htmlFor={priceId} className="mb-1">
                 Price
-              </label>
-              <input
+              </Label>
+              <Input
                 id={priceId}
-                type="text"
                 placeholder="1.00"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
               />
               {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="mt-1 text-xs text-destructive">
                   {field.state.meta.errors
                     .map((e) =>
                       typeof e === 'string'
@@ -316,36 +300,27 @@ export function ProductForm({
         <form.Field name="stocked">
           {(field) => (
             <div className="flex items-end">
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
+              <Label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
                   name={field.name}
                   checked={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  onCheckedChange={(checked) =>
+                    field.handleChange(checked === true)
+                  }
                 />
                 In Stock
-              </label>
+              </Label>
             </div>
           )}
         </form.Field>
       </div>
       <div className="mt-4 flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : product ? 'Update' : 'Create'}
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -367,28 +342,27 @@ export function FilterableProductTable() {
   }
 
   return (
-    <div className="rounded-xl bg-white p-6 shadow-md">
-      <div className="mb-4 flex items-center justify-between">
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl">Products</CardTitle>
+          {!showForm && (
+            <Button onClick={() => setShowForm(true)}>Add Product</Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
         <SearchBar />
-        {!showForm && (
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="rounded-lg bg-green-500 px-4 py-2 text-sm text-white hover:bg-green-600"
-          >
-            Add Product
-          </button>
+        {showForm && (
+          <ProductForm
+            key={editingProduct ? editingProduct.id : 'new'}
+            product={editingProduct}
+            onCancel={handleCancel}
+            onSuccess={handleCancel}
+          />
         )}
-      </div>
-      {showForm && (
-        <ProductForm
-          key={editingProduct ? editingProduct.id : 'new'}
-          product={editingProduct}
-          onCancel={handleCancel}
-          onSuccess={handleCancel}
-        />
-      )}
-      <ProductTable products={products} onEdit={handleEdit} />
-    </div>
+        <ProductTable products={products} onEdit={handleEdit} />
+      </CardContent>
+    </Card>
   )
 }

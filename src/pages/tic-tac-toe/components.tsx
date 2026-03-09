@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   calculateWinner,
   type Player,
@@ -13,13 +15,14 @@ type SquareProps = {
 
 function Square({ value, onClick }: SquareProps) {
   return (
-    <button
-      type="button"
-      className="bg-white border border-zinc-500 text-2xl font-bold size-8 -mr-px -mt-px align-top"
+    <Button
+      variant="outline"
+      size="icon"
+      className="size-10 text-2xl font-bold rounded-none -mr-px -mt-px align-top"
       onClick={onClick}
     >
       {value}
-    </button>
+    </Button>
   )
 }
 
@@ -89,29 +92,37 @@ export function Game() {
     return (
       // biome-ignore lint/suspicious/noArrayIndexKey: move numbers are stable in game history
       <li key={move}>
-        <button
-          type="button"
+        <Button
+          variant={move === currentMove ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => jumpTo(move)}
           className={move === currentMove ? 'font-bold' : ''}
         >
           {description}
-        </button>
+        </Button>
       </li>
     )
   })
 
   return (
-    <div className="flex gap-8">
-      <div className="flex flex-col">
-        <Board
-          squares={currentSquares}
-          currentPlayer={currentPlayer}
-          onPlay={handlePlay}
-        />
-      </div>
-      <div>
-        <ol className="pl-4 list-decimal">{moves}</ol>
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl">Tic-Tac-Toe</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-8">
+          <div className="flex flex-col">
+            <Board
+              squares={currentSquares}
+              currentPlayer={currentPlayer}
+              onPlay={handlePlay}
+            />
+          </div>
+          <div>
+            <ol className="flex flex-col gap-1">{moves}</ol>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

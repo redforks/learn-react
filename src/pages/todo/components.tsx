@@ -1,5 +1,9 @@
 import { useRouter } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 import type { TodoItem } from './data'
 import {
   countRemaining,
@@ -16,27 +20,32 @@ export function Todo() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Todo List</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-3xl">Todo List</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <AddTodoForm />
 
-      <AddTodoForm />
+          {todos.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {remaining} item{remaining !== 1 ? 's' : ''} remaining
+            </p>
+          )}
 
-      {todos.length > 0 && (
-        <p className="text-sm text-zinc-500 mb-3">
-          {remaining} item{remaining !== 1 ? 's' : ''} remaining
-        </p>
-      )}
+          <ul className="space-y-2">
+            {todos.map((todo) => (
+              <TodoItemRow key={todo.id} todo={todo} />
+            ))}
+          </ul>
 
-      <ul className="space-y-2">
-        {todos.map((todo) => (
-          <TodoItemRow key={todo.id} todo={todo} />
-        ))}
-      </ul>
-
-      {todos.length === 0 && (
-        <p className="text-center text-zinc-400 py-8">
-          No todos yet. Add one above!
-        </p>
-      )}
+          {todos.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">
+              No todos yet. Add one above!
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -63,22 +72,17 @@ function AddTodoForm() {
   }
 
   return (
-    <form className="flex gap-2 mb-6" onSubmit={handleSubmit}>
-      <input
+    <form className="flex gap-2" onSubmit={handleSubmit}>
+      <Input
         ref={inputRef}
-        type="text"
         name="text"
         disabled={isSubmitting}
         placeholder="What needs to be done?"
-        className="flex-1 border border-zinc-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="flex-1"
       />
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
-      >
+      <Button type="submit" disabled={isSubmitting}>
         Add
-      </button>
+      </Button>
     </form>
   )
 }
@@ -111,7 +115,7 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
     await router.invalidate()
   }
 
-  async function handleToggle() {
+  async function handleToggle(_checked: boolean) {
     if (isEditing) setIsEditing(false)
     const formData = new FormData()
     formData.append('id', String(todo.id))
@@ -120,69 +124,61 @@ function TodoItemRow({ todo }: { todo: TodoItem }) {
   }
 
   return (
-    <li className="flex items-center gap-3 border border-zinc-200 rounded px-3 py-2 group">
-      {/* Toggle */}
-      <div className="contents">
-        <input
-          type="checkbox"
-          checked={todo.completed}
-          onChange={handleToggle}
-          className="size-4 accent-blue-500"
-        />
-      </div>
+    <li className="flex items-center gap-3 border rounded-lg px-3 py-2 group">
+      <Checkbox checked={todo.completed} onCheckedChange={handleToggle} />
 
-      {/* Edit/Delete form */}
       {isEditing ? (
         <form onSubmit={handleUpdate} className="contents">
           <input type="hidden" name="id" value={todo.id} />
           <div className="flex-1 flex gap-2">
-            <input
+            <Input
               ref={editInputRef}
               key={todo.id}
-              type="text"
               name="text"
               defaultValue={todo.text}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') cancelEditing()
               }}
-              className="flex-1 border border-zinc-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="flex-1 h-8"
             />
-            <button
-              type="submit"
-              className="text-sm text-green-600 hover:text-green-800"
-            >
+            <Button type="submit" size="sm" variant="secondary">
               Save
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              variant="ghost"
               onClick={cancelEditing}
-              className="text-sm text-zinc-500 hover:text-zinc-700"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
         <form onSubmit={handleDelete} className="contents">
           <input type="hidden" name="id" value={todo.id} />
           <span
-            className={`flex-1 ${todo.completed ? 'line-through text-zinc-400' : ''}`}
+            className={`flex-1 ${todo.completed ? 'line-through text-muted-foreground' : ''}`}
           >
             {todo.text}
           </span>
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="ghost"
             onClick={handleStartEditing}
-            className="text-sm text-zinc-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
           >
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="text-sm text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            size="sm"
+            variant="destructive"
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
           >
             Delete
-          </button>
+          </Button>
         </form>
       )}
     </li>

@@ -21,6 +21,9 @@
       "semicolons": "asNeeded"
     }
   },
+  "files": {
+      "includes": ["src/**/*.{ts,tsx}" , "!src/components/ui/**/*"]
+  },
 
   "overrides": [
     {
