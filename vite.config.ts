@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 import { mockDevServerPlugin } from 'vite-plugin-mock-dev-server'
 import { defineConfig } from 'vitest/config'
 
@@ -14,6 +15,11 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   server: {
     strictPort: true,
     proxy: {

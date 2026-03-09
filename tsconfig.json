@@ -22,7 +22,13 @@
     "noImplicitReturns": true,
 
     /* Testing */
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+
+    /* Import alias */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.bun.json" }]
